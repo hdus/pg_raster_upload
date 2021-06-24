@@ -1,0 +1,5 @@
+<RCC>
+    <qresource prefix="/plugins/pgraster_import" >
+        <file>icon.png</file>
+    </qresource>
+</RCC>
