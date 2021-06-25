@@ -114,7 +114,6 @@ class PGRasterImportDialog(QDialog, FORM_CLASS):
 
         try:
             conn = psycopg2.connect(connection_info)
-            self.cmb_schema.clear()
             self.cmb_schema.addItems(self.db_schemas(conn))
         except:
             QMessageBox.information(
