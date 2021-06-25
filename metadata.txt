@@ -21,8 +21,6 @@ repository=http://repo
 hasProcessingProvider=no
 # Uncomment the following line and add your changelog:
 # changelog=
-0.1
-  - Initial revision
 
 # Tags are comma separated with spaces allowed
 tags=python

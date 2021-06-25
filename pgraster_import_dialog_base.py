@@ -26,9 +26,10 @@ import psycopg2
 from qgis.PyQt import uic
 from qgis.core import *
 from qgis.utils import OverrideCursor
-from qgis.PyQt.QtCore import Qt,  pyqtSlot
+from qgis.PyQt.QtCore import Qt,  pyqtSlot,  QSettings
 from qgis.PyQt.QtWidgets import QDialog
 from .raster.raster_upload import RasterUpload
+from .about.about import About
 
 # This loads your .ui file so that PyQt can populate your plugin with the elements from Qt Designer
 FORM_CLASS, _ = uic.loadUiType(os.path.join(
@@ -155,4 +156,11 @@ class PGRasterImportDialog(QDialog, FORM_CLASS):
         
         with OverrideCursor(Qt.WaitCursor):
             RasterUpload(conn,  cursor,  raster_to_upload,  self.progress_label,  self.progress_bar)
-
+    
+    @pyqtSlot()
+    def on_btn_about_clicked(self):
+        """
+        Slot documentation goes here.
+        """
+        About().exec_()
+        
