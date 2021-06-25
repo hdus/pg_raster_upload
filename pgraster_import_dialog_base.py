@@ -65,6 +65,30 @@ class PGRasterImportDialog(QDialog, FORM_CLASS):
             self.btn_upload.setEnabled(False)
         else:
             self.btn_upload.setEnabled(True)
+            
+    def table_exists(self,  conn,  table_name):
+        if (len(table_name.split(".")) == 1):
+            schema = "public"
+            name = table_name
+        elif (len(table_name.split(".")) == 2):
+            schema = table_name.split(".")[0]
+            name = table_name.split(".")[1]
+            
+        sql = """
+            SELECT exists( 
+                SELECT table_name 
+                FROM information_schema.tables 
+                WHERE table_schema = '%s' and table_name = '%s')
+            """ % (schema,  name)
+        cur = conn.cursor()
+        cur.execute(sql)
+        rows = cur.fetchall()
+        
+        if len(rows) > 0:
+            return True
+        else:
+            return False
+            
 
     def getDbSettings(self):
         settings = QSettings()
@@ -167,11 +191,34 @@ class PGRasterImportDialog(QDialog, FORM_CLASS):
         conn = self.init_DB(self.cmb_db_connections.currentText())
         cursor = conn.cursor()
         
+        if self.table_exists(conn,  self.lne_table_name.text()):
+            result = QMessageBox.question(
+                None,
+                self.tr("Table exists"),
+                self.tr("""The selected table already exists in the database. Do you want to overwrite the table?"""),
+                QMessageBox.StandardButtons(
+                    QMessageBox.No |
+                    QMessageBox.Yes),
+                QMessageBox.No)
+            
+            if result == QMessageBox.Yes:
+                self.raster_upload(conn)
+                return
+            else:
+                return
+                
+        else:
+            self.raster_upload(conn)
+            return
+        
+    
+    def raster_upload(self,  conn):
 #     If schema doesn't exists in DB create a new schema        
         if self.cmb_schema.currentText() not in self.db_schemas(conn):
             sql = """
             create schema {0}
             """.format(self.cmb_schema.currentText())
+            cursor = conn.cursor()
             cursor.execute(sql)
         
         
@@ -186,7 +233,9 @@ class PGRasterImportDialog(QDialog, FORM_CLASS):
                 }
         
         with OverrideCursor(Qt.WaitCursor):
-            RasterUpload(conn,  cursor,  raster_to_upload,  self.progress_label,  self.progress_bar)
+            RasterUpload(conn,  raster_to_upload,  self.progress_label,  self.progress_bar)
+            
+        conn.close()
     
     @pyqtSlot()
     def on_btn_about_clicked(self):

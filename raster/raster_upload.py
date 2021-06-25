@@ -53,10 +53,10 @@ VERBOSE = False
 SUMMARY = []
 
 class RasterUpload(QObject):
-    def __init__(self,  conn,  cursor,  raster,  progress_label,  progress_bar):
+    def __init__(self,  conn,  raster,  progress_label,  progress_bar):
         QObject.__init__(self)
-        self.cursor = cursor
         self.conn = conn
+        self.cursor = conn.cursor()
         self.progress_label = progress_label
         self.progress_bar = progress_bar
         self.progress_bar.setValue(0)
@@ -136,12 +136,12 @@ class RasterUpload(QObject):
         QApplication.processEvents()
         self.cursor.execute(self.make_sql_addrastercolumn(opts))
         self.conn.commit()
-        self.progress_label.setText(self.tr("Upload finished"))
+        self.progress_label.setText(self.tr("Upload successful finished"))
             
             
                     # VACUUM
-#            self.cursor.execute(self.make_sql_vacuum(opts['table']))
-#            self.conn.commit
+#        self.cursor.execute(self.make_sql_vacuum(opts['table']))
+#        self.conn.commit
             
             
 

@@ -87,6 +87,9 @@
    </item>
    <item row="9" column="3">
     <widget class="QPushButton" name="btn_upload">
+     <property name="enabled">
+      <bool>false</bool>
+     </property>
      <property name="maximumSize">
       <size>
        <width>75</width>
