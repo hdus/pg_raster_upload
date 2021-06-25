@@ -40,7 +40,7 @@ class About( QDialog, FORM_CLASS):
         self.tabWidget.setTabText(3,  self.tr("Change Log"))
     
         # setup texts
-        aboutString = self.metadata.description() 
+        aboutString = self.metadata.about() 
     
         contribString = self.tr(u"<p><center><b>Author(s):</b></center></p>") 
         contribString += self.tr(u"<p>{0}<br>".format(self.metadata.author()))

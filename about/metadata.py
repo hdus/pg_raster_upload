@@ -35,6 +35,8 @@ class Metadata():
     def description(self):
         return self.result['description']
         
+    def about(self):
+        return self.result['about']
         
     def name(self):
        return self.result['name']
