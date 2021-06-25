@@ -66,28 +66,19 @@ class PGRasterImportDialog(QDialog, FORM_CLASS):
         else:
             self.btn_upload.setEnabled(True)
             
-    def table_exists(self,  conn,  table_name):
-        if (len(table_name.split(".")) == 1):
-            schema = "public"
-            name = table_name
-        elif (len(table_name.split(".")) == 2):
-            schema = table_name.split(".")[0]
-            name = table_name.split(".")[1]
+    def table_exists(self,  conn,  schema,  table):
             
         sql = """
             SELECT exists( 
                 SELECT table_name 
                 FROM information_schema.tables 
                 WHERE table_schema = '%s' and table_name = '%s')
-            """ % (schema,  name)
+            """ % (schema,  table)
         cur = conn.cursor()
         cur.execute(sql)
-        rows = cur.fetchall()
-        
-        if len(rows) > 0:
-            return True
-        else:
-            return False
+        rows = cur.fetchall()        
+
+        return rows[0][0]
             
 
     def getDbSettings(self):
@@ -123,6 +114,7 @@ class PGRasterImportDialog(QDialog, FORM_CLASS):
 
         try:
             conn = psycopg2.connect(connection_info)
+            self.cmb_schema.clear()
             self.cmb_schema.addItems(self.db_schemas(conn))
         except:
             QMessageBox.information(
@@ -163,13 +155,6 @@ class PGRasterImportDialog(QDialog, FORM_CLASS):
         """
         self.close()
     
-    @pyqtSlot()
-    def on_btn_raster_file_clicked(self):
-        """
-        Slot documentation goes here.
-        """
-        # TODO: not implemented yet
-        raise NotImplementedError
     
     @pyqtSlot(str)
     def on_cmb_db_connections_currentIndexChanged(self, p0):
@@ -191,7 +176,7 @@ class PGRasterImportDialog(QDialog, FORM_CLASS):
         conn = self.init_DB(self.cmb_db_connections.currentText())
         cursor = conn.cursor()
         
-        if self.table_exists(conn,  self.lne_table_name.text()):
+        if self.table_exists(conn,  self.cmb_schema.currentText(),  self.lne_table_name.text()):
             result = QMessageBox.question(
                 None,
                 self.tr("Table exists"),
