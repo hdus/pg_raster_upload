@@ -27,7 +27,7 @@ from qgis.PyQt import uic
 from qgis.core import *
 from qgis.utils import OverrideCursor
 from qgis.PyQt.QtCore import Qt,  pyqtSlot,  QSettings
-from qgis.PyQt.QtWidgets import QDialog
+from qgis.PyQt.QtWidgets import QDialog,  QMessageBox
 from .raster.raster_upload import RasterUpload
 from .about.about import About
 
@@ -47,6 +47,24 @@ class PGRasterImportDialog(QDialog, FORM_CLASS):
         # #widgets-and-dialogs-with-auto-connect
         self.setupUi(self)
         self.getDbSettings()
+        self.cmb_map_layer.setCurrentIndex(-1) 
+        self.cmb_map_layer.setFilters(QgsMapLayerProxyModel.RasterLayer)        
+        self.excluded_layers()
+        
+    def excluded_layers(self):
+        excepted_layers = []
+        for i in range(self.cmb_map_layer.count()):
+            layer = self.cmb_map_layer.layer(i)
+            if layer.dataProvider().name() == 'postgresraster':
+                excepted_layers.append(layer)
+                
+        self.cmb_map_layer.setExceptedLayerList(excepted_layers)
+        
+    def enable_buttons(self):
+        if self.cmb_map_layer.currentIndex() == -1 or self.cmb_db_connections.currentIndex() == 0:
+            self.btn_upload.setEnabled(False)
+        else:
+            self.btn_upload.setEnabled(True)
 
     def getDbSettings(self):
         settings = QSettings()
@@ -81,7 +99,7 @@ class PGRasterImportDialog(QDialog, FORM_CLASS):
 
         try:
             conn = psycopg2.connect(connection_info)
-            self.db_schemas(conn)
+            self.cmb_schema.addItems(self.db_schemas(conn))
         except:
             QMessageBox.information(
                 None, self.tr('Error'),
@@ -90,7 +108,7 @@ class PGRasterImportDialog(QDialog, FORM_CLASS):
             return None
             
         return conn
-
+        
     def db_schemas(self,  conn):
       
         sql = """
@@ -103,8 +121,11 @@ class PGRasterImportDialog(QDialog, FORM_CLASS):
         cur.execute(sql)
         rows = cur.fetchall()
         
+        schema_list = []
         for row in rows:
-            self.cmb_schema.addItem(row[0])
+            schema_list.append(row[0])
+            
+        return schema_list
                     
         
 #    @pyqtSlot()
@@ -135,6 +156,8 @@ class PGRasterImportDialog(QDialog, FORM_CLASS):
         @type str
         """
         self.init_DB(p0)
+        self.enable_buttons()
+            
     
     @pyqtSlot()
     def on_btn_upload_clicked(self):
@@ -143,6 +166,14 @@ class PGRasterImportDialog(QDialog, FORM_CLASS):
         """
         conn = self.init_DB(self.cmb_db_connections.currentText())
         cursor = conn.cursor()
+        
+#     If schema doesn't exists in DB create a new schema        
+        if self.cmb_schema.currentText() not in self.db_schemas(conn):
+            sql = """
+            create schema {0}
+            """.format(self.cmb_schema.currentText())
+            cursor.execute(sql)
+        
         
         layer = self.cmb_map_layer.currentLayer()
         raster_to_upload = {
@@ -163,4 +194,13 @@ class PGRasterImportDialog(QDialog, FORM_CLASS):
         Slot documentation goes here.
         """
         About().exec_()
+    
+    @pyqtSlot(str)
+    def on_cmb_map_layer_currentIndexChanged(self, p0):
+        """
+        Slot documentation goes here.
         
+        @param p0 DESCRIPTION
+        @type str
+        """
+        self.lne_table_name.setText(self.cmb_map_layer.currentText())
