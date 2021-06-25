@@ -22,14 +22,12 @@
 #
 from qgis.PyQt.QtCore import QObject, QFileInfo
 from qgis.PyQt.QtWidgets import QApplication,  QMessageBox
-from qgis.core import *
+#from qgis.core import *
 from osgeo import gdal
-from osgeo import osr
 import osgeo.gdalconst as gdalc
 from io import StringIO
 from qgiscloud.db_connections import DbConnections
 import binascii
-import glob
 import math
 import numpy
 import os
