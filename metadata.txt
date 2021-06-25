@@ -22,7 +22,7 @@ hasProcessingProvider=no
 # Uncomment the following line and add your changelog:
 changelog=
   1.0.3
-  - Bugfixing
+  - Fix #1
   1.0.2
   - Bugfixing
   1.0.1
