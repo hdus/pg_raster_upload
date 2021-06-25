@@ -207,19 +207,28 @@ class PGRasterImportDialog(QDialog, FORM_CLASS):
         
         
         layer = self.cmb_map_layer.currentLayer()
-        raster_to_upload = {
-                    'layer': layer,
-                    'data_source': layer.source(),
-                    'db_name': self.cmb_db_connections.currentText(),
-                    'schema_name': self.cmb_schema.currentText(), 
-                    'table_name': self.lne_table_name.text(),
-                    'geom_column': 'rast'
-                }
-        
-        with OverrideCursor(Qt.WaitCursor):
-            RasterUpload(conn,  raster_to_upload,  self.progress_label,  self.progress_bar)
+        if layer.dataProvider().name() == 'gdal':
+            raster_to_upload = {
+                        'layer': layer,
+                        'data_source': layer.source(),
+                        'db_name': self.cmb_db_connections.currentText(),
+                        'schema_name': self.cmb_schema.currentText(), 
+                        'table_name': self.lne_table_name.text(),
+                        'geom_column': 'rast'
+                    }
             
-        conn.close()
+            with OverrideCursor(Qt.WaitCursor):
+                RasterUpload(conn,  raster_to_upload,  self.progress_label,  self.progress_bar)
+                
+            conn.close()
+        else:
+            res = QMessageBox.information(
+                self,
+                self.tr("Warning"),
+                self.tr("""Layers of type {0} are not supported!""".format(layer.dataProvider().name())),
+                QMessageBox.StandardButtons(
+                    QMessageBox.Ok))
+            
     
     @pyqtSlot()
     def on_btn_about_clicked(self):
