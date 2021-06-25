@@ -81,7 +81,7 @@
    <item row="8" column="0" colspan="4">
     <widget class="QProgressBar" name="progress_bar">
      <property name="value">
-      <number>24</number>
+      <number>0</number>
      </property>
     </widget>
    </item>
@@ -107,7 +107,7 @@
       </size>
      </property>
      <property name="text">
-      <string>close</string>
+      <string>Close</string>
      </property>
     </widget>
    </item>
@@ -115,6 +115,19 @@
     <widget class="QLabel" name="progress_label">
      <property name="text">
       <string/>
+     </property>
+    </widget>
+   </item>
+   <item row="9" column="0">
+    <widget class="QPushButton" name="btn_about">
+     <property name="maximumSize">
+      <size>
+       <width>75</width>
+       <height>16777215</height>
+      </size>
+     </property>
+     <property name="text">
+      <string>About</string>
      </property>
     </widget>
    </item>
