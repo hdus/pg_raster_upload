@@ -4,6 +4,7 @@
 # Copyright (C) 2009-2010 Jorge Arevalo <jorge.arevalo@deimos-space.com>
 #
 # Modified for QGIS Cloud Plugin April 2016 by Horst Duester <horst.duester@sourcepole.ch>
+# Modified for PostGIS Raster Import Plugin June 2021 by Horst Duester <horst.duester@sourcepole.ch>
 # 
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -20,7 +21,7 @@
 # Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 ################################################################################
 #
-from qgis.PyQt.QtCore import QObject, QFileInfo
+from qgis.PyQt.QtCore import QObject
 from qgis.PyQt.QtWidgets import QApplication,  QMessageBox
 #from qgis.core import *
 from osgeo import gdal
@@ -92,12 +93,6 @@ class RasterUpload(QObject):
         layer_info = raster
         opts['srid'] = layer_info['layer'].dataProvider().crs().postgisSrid()
         infile = layer_info['data_source']
-        
-#        file_info = QFileInfo(infile)
-#        file_size = file_info.size()
-#        size = DbConnections().db_size()
-#        file_size /= 1024 * 1024
-#        size = size + file_size
         
         opts['schema_table'] = "\"%s\".\"%s\"" % (layer_info['schema_name'],  layer_info['table_name'])
         opts['table'] = layer_info['table_name']
