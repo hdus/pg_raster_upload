@@ -146,7 +146,7 @@ class PGRasterImport:
 
         if add_to_toolbar:
             # Adds plugin icon to Plugins toolbar
-            self.iface.addToolBarIcon(action)
+            self.iface.addDatabaseToolBarIcon(action)
 
         if add_to_menu:
             self.iface.addPluginToDatabaseMenu(
