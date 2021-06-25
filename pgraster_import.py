@@ -177,7 +177,7 @@ class PGRasterImport:
             self.iface.removePluginDatabaseMenu(
                 self.tr(u'&PostGIS Raster Import'),
                 action)
-            self.iface.removeToolBarIcon(action)
+            self.iface.removeDatabaseToolBarIcon(action)
 
 
     def run(self):
