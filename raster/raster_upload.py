@@ -26,7 +26,6 @@ from qgis.PyQt.QtWidgets import QApplication,  QMessageBox
 from osgeo import gdal
 import osgeo.gdalconst as gdalc
 from io import StringIO
-from qgiscloud.db_connections import DbConnections
 import binascii
 import math
 import numpy
@@ -94,11 +93,11 @@ class RasterUpload(QObject):
         opts['srid'] = layer_info['layer'].dataProvider().crs().postgisSrid()
         infile = layer_info['data_source']
         
-        file_info = QFileInfo(infile)
-        file_size = file_info.size()
-        size = DbConnections().db_size()
-        file_size /= 1024 * 1024
-        size = size + file_size
+#        file_info = QFileInfo(infile)
+#        file_size = file_info.size()
+#        size = DbConnections().db_size()
+#        file_size /= 1024 * 1024
+#        size = size + file_size
         
         opts['schema_table'] = "\"%s\".\"%s\"" % (layer_info['schema_name'],  layer_info['table_name'])
         opts['table'] = layer_info['table_name']
