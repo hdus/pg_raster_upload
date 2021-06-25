@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE Project SYSTEM "Project-5.1.dtd">
 <!-- eric project file for project PG Raster Import -->
-<!-- Saved: 2021-06-25, 08:46:45 -->
+<!-- Saved: 2021-06-25, 11:24:09 -->
 <!-- Copyright (C) 2021 ,  -->
 <Project version="5.1">
   <Language>en_US</Language>
@@ -28,6 +28,8 @@
     <Form>pgraster_import_dialog_base.ui</Form>
   </Forms>
   <Translations>
+    <Translation>i18n/PGRasterImport_de.qm</Translation>
+    <Translation>i18n/PGRasterImport_de.ts</Translation>
     <Translation>i18n/af.ts</Translation>
   </Translations>
   <Resources>
