@@ -47,7 +47,7 @@
    <item row="0" column="0">
     <widget class="QLabel" name="label">
      <property name="text">
-      <string>Raster File:</string>
+      <string>Raster Layer:</string>
      </property>
     </widget>
    </item>
