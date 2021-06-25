@@ -24,13 +24,6 @@
    <item row="0" column="1" colspan="2">
     <widget class="QgsMapLayerComboBox" name="cmb_map_layer"/>
    </item>
-   <item row="0" column="3">
-    <widget class="QToolButton" name="btn_raster_file">
-     <property name="text">
-      <string>...</string>
-     </property>
-    </widget>
-   </item>
    <item row="1" column="1" colspan="3">
     <widget class="QComboBox" name="cmb_db_connections"/>
    </item>
