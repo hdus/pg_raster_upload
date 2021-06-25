@@ -26,8 +26,8 @@ import psycopg2
 from qgis.PyQt import uic
 from qgis.core import *
 from qgis.utils import OverrideCursor
-from qgis.PyQt.QtCore import Qt,  pyqtSlot,  QSettings,  QFileInfo
-from qgis.PyQt.QtWidgets import QDialog,  QMessageBox,  QDialogButtonBox
+from qgis.PyQt.QtCore import Qt,  pyqtSlot
+from qgis.PyQt.QtWidgets import QDialog
 from .raster.raster_upload import RasterUpload
 
 # This loads your .ui file so that PyQt can populate your plugin with the elements from Qt Designer
