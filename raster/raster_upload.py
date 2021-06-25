@@ -34,6 +34,7 @@ import math
 import numpy
 import os
 import sys
+import psycopg2
 
 ################################################################################
 # CONSTANTS - DO NOT CHANGE
@@ -78,9 +79,14 @@ class RasterUpload(QObject):
         with open(raster_tools_file) as f:
             sql = f.read().encode('ascii',errors='ignore')
             f.close()
+        
+        try:
+            self.cursor.execute(sql)
+            self.conn.commit()              
+        except psycopg2.errors.UndefinedObject:
+            QMessageBox.warning(None, self.tr('Error'),  self.tr('PostGIS Raster Extension not installed in destination DB'))
+            return None
             
-        self.cursor.execute(sql)
-        self.conn.commit()              
          
         i = 0
          
@@ -128,8 +134,13 @@ class RasterUpload(QObject):
             self.conn.commit()
             
             index_table = opts['schema']+'.o_'+str(level)+'_'+opts['table']
-            self.cursor.execute(self.make_sql_create_gist(index_table,  opts['column']))
-            self.conn.commit()
+            
+            try:
+                self.cursor.execute(self.make_sql_create_gist(index_table,  opts['column']))
+                self.conn.commit()
+            except psycopg2.errors.UndefinedTable:
+                QMessageBox.warning(None, self.tr('Error'),  self.tr('Something went wrong during overview creation'))
+                return None            
                 
 
         self.progress_label.setText(self.tr("Registering raster columns of table '%s'..." % (opts['schema_table'].replace('"',  ''))))
