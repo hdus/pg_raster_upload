@@ -127,6 +127,19 @@
      </property>
     </widget>
    </item>
+   <item row="5" column="0">
+    <widget class="QCheckBox" name="chk_overviews">
+     <property name="layoutDirection">
+      <enum>Qt::RightToLeft</enum>
+     </property>
+     <property name="text">
+      <string>create raster overviews</string>
+     </property>
+     <property name="checked">
+      <bool>false</bool>
+     </property>
+    </widget>
+   </item>
   </layout>
  </widget>
  <customwidgets>
