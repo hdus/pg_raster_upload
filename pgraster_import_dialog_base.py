@@ -37,7 +37,7 @@ FORM_CLASS, _ = uic.loadUiType(os.path.join(
 
 
 class PGRasterImportDialog(QDialog, FORM_CLASS):
-    def __init__(self, parent=None):
+    def __init__(self, iface,  parent=None):
         """Constructor."""
         super(PGRasterImportDialog, self).__init__(parent)
         # Set up the user interface from Designer through FORM_CLASS.
@@ -46,10 +46,15 @@ class PGRasterImportDialog(QDialog, FORM_CLASS):
         # http://qt-project.org/doc/qt-4.8/designer-using-a-ui-file.html
         # #widgets-and-dialogs-with-auto-connect
         self.setupUi(self)
+        self.iface = iface
         self.getDbSettings()
         self.cmb_map_layer.setCurrentIndex(-1) 
         self.cmb_map_layer.setFilters(QgsMapLayerProxyModel.RasterLayer)        
         self.excluded_layers()
+        
+    def message(self,  title,  text,  type):
+        widget = self.iface.messageBar().createMessage(title, text)
+        self.iface.messageBar().pushWidget(widget, type)
         
     def excluded_layers(self):
         excepted_layers = []
@@ -173,7 +178,6 @@ class PGRasterImportDialog(QDialog, FORM_CLASS):
         Slot documentation goes here.
         """
         conn = self.init_DB(self.cmb_db_connections.currentText())
-        cursor = conn.cursor()
         
         if self.table_exists(conn,  self.cmb_schema.currentText(),  self.lne_table_name.text()):
             result = QMessageBox.question(
@@ -186,14 +190,21 @@ class PGRasterImportDialog(QDialog, FORM_CLASS):
                 QMessageBox.No)
             
             if result == QMessageBox.Yes:
-                self.raster_upload(conn)
-                return
+                if self.raster_upload(conn):
+                    self.message(self.tr('Success'),  self.tr('Raster successful uploaded to database'),  Qgis.Success)
+                else:
+                    self.message(self.tr('Error'),  self.tr('Upload failed'),  Qgis.Critical)
             else:
-                return
+                self.message(self.tr('Error'),  self.tr('Upload failed'),  Qgis.Critical)
                 
         else:
-            self.raster_upload(conn)
-            return
+            if self.raster_upload(conn):
+                self.message(self.tr('Success'),  self.tr('Raster successful uploaded to database'),  Qgis.Success)
+            else:
+                self.message(self.tr('Error'),  self.tr('Upload failed'),  Qgis.Critical)
+                
+        self.close()
+            
         
     
     def raster_upload(self,  conn):
@@ -218,9 +229,10 @@ class PGRasterImportDialog(QDialog, FORM_CLASS):
                     }
             
             with OverrideCursor(Qt.WaitCursor):
-                RasterUpload(conn,  raster_to_upload,  self.progress_label,  self.progress_bar)
+                RasterUpload(conn,  raster_to_upload,  self.chk_overviews.isChecked(),  self.progress_label,  self.progress_bar)
                 
             conn.close()
+            return True
         else:
             res = QMessageBox.information(
                 self,
@@ -228,6 +240,7 @@ class PGRasterImportDialog(QDialog, FORM_CLASS):
                 self.tr("""Layers of type {0} are not supported!""".format(layer.dataProvider().name())),
                 QMessageBox.StandardButtons(
                     QMessageBox.Ok))
+            return False
             
     
     @pyqtSlot()
