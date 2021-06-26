@@ -12,7 +12,7 @@ sql=# create extension postgis_raster;
 
 ## Usage
 
-  * To load a raster into a PostGIS database, the raster must first be loaded into a QGIS project. When the PostGIS Raster Import5 plugin is then started, the selection list 'Raser layer' is filled with the loaded raster layers. Only file-based raster data can be loaded into the DB.
+  * To load a raster into a PostGIS database, the raster must first be loaded into a QGIS project. When the PostGIS Raster Import plugin is then started, the selection list 'Raser layer' is filled with the loaded raster layers. Only file-based raster data can be loaded into the DB.
 
   * The next step is to select the database connection.
 
