@@ -16,7 +16,7 @@ sql=# create extension postgis_raster;
 
   * The next step is to select the database connection.
 
-  * Select the scheme in the selected database. In the selection list `Schema` all schemas of the selected database are displayed. A new schema can be created in the database by entering a new text in the selection list.
+  * Select the schema in the selected database. In the selection list `Schema` all schemas of the selected database are displayed. A new schema can be created in the database by entering a new text in the selection list.
 
   * In the input field `Table name` the name of the target table in the selected database must be entered.
 
