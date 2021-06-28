@@ -6,7 +6,7 @@
 name=PostGIS Raster Import
 qgisMinimumVersion=3.0
 description=Import Raster to PgRaster
-version=1.0.3
+version=1.0.4
 author=Dr. Horst Duester
 email=horst.duester@sourcepole.ch
 
@@ -21,6 +21,8 @@ repository=https://github.com/hdus/pg_raster_upload
 hasProcessingProvider=no
 # Uncomment the following line and add your changelog:
 changelog=
+  1.0.4
+  - Improved error handling
   1.0.3
   - Fix #1
   1.0.2
