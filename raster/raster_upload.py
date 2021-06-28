@@ -52,7 +52,7 @@ VERBOSE = False
 SUMMARY = []
 
 class RasterUpload(QObject):
-    def __init__(self,  conn,  raster,  progress_label,  progress_bar):
+    def __init__(self,  conn,  raster,  overviews,  progress_label,  progress_bar):
         QObject.__init__(self)
         self.conn = conn
         self.cursor = conn.cursor()
@@ -60,6 +60,7 @@ class RasterUpload(QObject):
         self.progress_bar = progress_bar
         self.progress_bar.setValue(0)
         self.messages = ""
+        self.overviews = overviews
 
         opts = {}
         opts['version'] = g_rt_version
@@ -114,25 +115,26 @@ class RasterUpload(QObject):
         self.conn.commit()            
 
    # create raster overviews
-        for level in [4, 8, 16, 32]:
-            
-            sql = 'drop table if exists "%s"."o_%d_%s"' %(opts['schema'],  level,  opts['table'])
-            self.cursor.execute(sql)
-            self.conn.commit()
-            sql = "select st_createoverview_qgiscloud('%s'::text, '%s'::name, %d)" % (opts['schema_table'].replace('"',  ''),  opts['column'],  level)
-            self.progress_label.setText(self.tr("Creating overview-level {level} for table '{table}'...").format(level=level,  table=opts['schema_table'].replace('"',  '')))
-            QApplication.processEvents()
-            self.cursor.execute(sql)
-            self.conn.commit()
-            
-            index_table = opts['schema']+'.o_'+str(level)+'_'+opts['table']
-            
-            try:
-                self.cursor.execute(self.make_sql_create_gist(index_table,  opts['column']))
+        if overviews:
+            for level in [4, 8, 16, 32]:
+                
+                sql = 'drop table if exists "%s"."o_%d_%s"' %(opts['schema'],  level,  opts['table'])
+                self.cursor.execute(sql)
                 self.conn.commit()
-            except psycopg2.errors.UndefinedTable:
-                QMessageBox.warning(None, self.tr('Error'),  self.tr('Something went wrong during overview creation'))
-                return None            
+                sql = "select st_createoverview_qgiscloud('%s'::text, '%s'::name, %d)" % (opts['schema_table'].replace('"',  ''),  opts['column'],  level)
+                self.progress_label.setText(self.tr("Creating overview-level {level} for table '{table}'...").format(level=level,  table=opts['schema_table'].replace('"',  '')))
+                QApplication.processEvents()
+                self.cursor.execute(sql)
+                self.conn.commit()
+                
+                index_table = opts['schema']+'.o_'+str(level)+'_'+opts['table']
+                
+                try:
+                    self.cursor.execute(self.make_sql_create_gist(index_table,  opts['column']))
+                    self.conn.commit()
+                except psycopg2.errors.UndefinedTable:
+                    QMessageBox.warning(None, self.tr('Error'),  str(sys.exc_info()[1]))                                        
+                    return None            
                 
 
         self.progress_label.setText(self.tr("Registering raster columns of table '%s'..." % (opts['schema_table'].replace('"',  ''))))
@@ -147,7 +149,16 @@ class RasterUpload(QObject):
 #        self.conn.commit
             
             
-
+    def __error_message(self, e):
+        result = QMessageBox.critical(
+            None,
+            self.tr("Error"),
+            self.tr("%s" % e),
+            QMessageBox.StandardButtons(
+                QMessageBox.Ok),
+            QMessageBox.Ok)
+        
+        return None        
     
     ################################################################################ 
         

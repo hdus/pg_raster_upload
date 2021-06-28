@@ -22,6 +22,7 @@
  ***************************************************************************/
 """
 import os
+import sys
 import psycopg2
 from qgis.PyQt import uic
 from qgis.core import *
@@ -51,6 +52,17 @@ class PGRasterImportDialog(QDialog, FORM_CLASS):
         self.cmb_map_layer.setCurrentIndex(-1) 
         self.cmb_map_layer.setFilters(QgsMapLayerProxyModel.RasterLayer)        
         self.excluded_layers()
+        
+    def __error_message(self, e):
+        result = QMessageBox.critical(
+            None,
+            self.tr("Error"),
+            self.tr("%s" % e),
+            QMessageBox.StandardButtons(
+                QMessageBox.Ok),
+            QMessageBox.Ok)
+        
+        return None        
         
     def message(self,  title,  text,  type):
         widget = self.iface.messageBar().createMessage(title, text)
@@ -121,10 +133,7 @@ class PGRasterImportDialog(QDialog, FORM_CLASS):
             conn = psycopg2.connect(connection_info)
             self.cmb_schema.addItems(self.db_schemas(conn))
         except:
-            QMessageBox.information(
-                None, self.tr('Error'),
-                self.tr('No Database Connection Established.'))
-            self.cmb_db_connections.setCurrentIndex(0)
+            QMessageBox.critical(None,  self.tr(Error),  sys.exc_info()[1])
             return None
             
         return conn
