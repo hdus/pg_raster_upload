@@ -211,9 +211,7 @@ class PGRasterImportDialog(QDialog, FORM_CLASS):
                 self.message(self.tr('Success'),  self.tr('Raster successful uploaded to database'),  Qgis.Success)
             else:
                 self.message(self.tr('Error'),  self.tr('Upload failed'),  Qgis.Critical)
-                
-        self.close()
-            
+                            
         
     
     def raster_upload(self,  conn):
