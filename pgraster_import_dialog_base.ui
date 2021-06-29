@@ -35,7 +35,11 @@
     </widget>
    </item>
    <item row="4" column="1" colspan="3">
-    <widget class="QLineEdit" name="lne_table_name"/>
+    <widget class="QLineEdit" name="lne_table_name">
+     <property name="clearButtonEnabled">
+      <bool>true</bool>
+     </property>
+    </widget>
    </item>
    <item row="0" column="0">
     <widget class="QLabel" name="label">
