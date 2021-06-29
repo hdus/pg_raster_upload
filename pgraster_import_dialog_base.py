@@ -265,4 +265,4 @@ class PGRasterImportDialog(QDialog, FORM_CLASS):
         @param p0 DESCRIPTION
         @type str
         """
-        self.lne_table_name.setText(self.cmb_map_layer.currentText())
+        self.lne_table_name.setText(p0.lower())
