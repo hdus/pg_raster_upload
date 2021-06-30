@@ -12,7 +12,9 @@ email=horst.duester@sourcepole.ch
 
 about=The plugin is designed to easily import file-based rasters into a PostGIS database. 
 
+
   The underlying raster import is based on the work of:
+  
   - Mateusz Loskot <mateusz@loskot.net> Copyright (C) 2009-2010 
   - Pierre Racine <pierre.racine@sbf.ulaval.ca> Copyright (C) 2009-2011
   - Jorge Arevalo <jorge.arevalo@deimos-space.com> Copyright (C) 2009-2010 
