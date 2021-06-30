@@ -23,6 +23,7 @@
 """
 import os
 import sys
+import re
 import psycopg2
 from qgis.PyQt import uic
 from qgis.core import *
@@ -265,4 +266,23 @@ class PGRasterImportDialog(QDialog, FORM_CLASS):
         @param p0 DESCRIPTION
         @type str
         """
-        self.lne_table_name.setText(p0.lower())
+        self.lne_table_name.setText(self.launder_table_name(p0))
+        
+#    @staticmethod
+    def launder_table_name(self,  name):
+        # OGRPGDataSource::LaunderName
+        # return re.sub(r"[#'-]", '_', unicode(name).lower())
+        input_string = str(name).lower().encode('ascii', 'replace')
+        input_string = input_string.replace(b" ", b"_")
+        input_string = input_string.replace(b".", b"_")
+        input_string = input_string.replace(b"-", b"_")
+
+        # check if table_name starts with number
+
+        if re.search(r"^\d", input_string.decode('utf-8')):
+            input_string = '_'+input_string.decode('utf-8')
+
+        try:
+            return input_string.decode('utf-8')
+        except:
+            return input_string        
