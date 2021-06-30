@@ -6,12 +6,18 @@
 name=PostGIS Raster Import
 qgisMinimumVersion=3.0
 description=Import Raster to PgRaster
-version=1.0.5
+version=1.0.6
 author=Dr. Horst Duester
 email=horst.duester@sourcepole.ch
 
-about=The plugin is designed to easily import file-based rasters into a PostGIS database.
+about=The plugin is designed to easily import file-based rasters into a PostGIS database. 
 
+  The underlying raster import is based on the work of:
+  - Mateusz Loskot <mateusz@loskot.net> Copyright (C) 2009-2010 
+  - Pierre Racine <pierre.racine@sbf.ulaval.ca> Copyright (C) 2009-2011
+  - Jorge Arevalo <jorge.arevalo@deimos-space.com> Copyright (C) 2009-2010 
+  - Horst Duester <horst.duester@sourcepole.ch> Copyright (C) 2016
+  
 tracker=https://github.com/hdus/pg_raster_upload/issues
 repository=https://github.com/hdus/pg_raster_upload
 # End of mandatory metadata
@@ -21,6 +27,8 @@ repository=https://github.com/hdus/pg_raster_upload
 hasProcessingProvider=no
 # Uncomment the following line and add your changelog:
 changelog=
+  1.0.6
+  - Laundering of resulting database table improved
   1.0.5
   - Tablename always to lowercase
   1.0.4
