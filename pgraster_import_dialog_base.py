@@ -279,6 +279,9 @@ class PGRasterImportDialog(QDialog, FORM_CLASS):
         input_string = input_string.replace(b" ", b"_")
         input_string = input_string.replace(b".", b"_")
         input_string = input_string.replace(b"-", b"_")
+        input_string = input_string.replace(b"'", b"_")
+        input_string = input_string.replace(b"(", b"_")
+        input_string = input_string.replace(b")", b"_")
 
         # check if table_name starts with number
 
