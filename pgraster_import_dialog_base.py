@@ -67,7 +67,7 @@ class PGRasterImportDialog(QDialog, FORM_CLASS):
         
     def message(self,  title,  text,  type):
         widget = self.iface.messageBar().createMessage(title, text)
-        self.iface.messageBar().pushWidget(widget, type)
+        self.iface.messageBar().pushWidget(widget, type,  duration=5)
         
     def excluded_layers(self):
         excepted_layers = []
@@ -137,7 +137,7 @@ class PGRasterImportDialog(QDialog, FORM_CLASS):
             QMessageBox.critical(None,  self.tr(Error),  sys.exc_info()[1])
             return None
             
-        return conn
+        return conn,  DBPASSWD
         
     def db_schemas(self,  conn):
       
@@ -187,7 +187,7 @@ class PGRasterImportDialog(QDialog, FORM_CLASS):
         """
         Slot documentation goes here.
         """
-        conn = self.init_DB(self.cmb_db_connections.currentText())
+        conn,  password = self.init_DB(self.cmb_db_connections.currentText())
         
         if self.table_exists(conn,  self.cmb_schema.currentText(),  self.lne_table_name.text()):
             result = QMessageBox.question(
@@ -212,6 +212,9 @@ class PGRasterImportDialog(QDialog, FORM_CLASS):
                 self.message(self.tr('Success'),  self.tr('Raster successful uploaded to database'),  Qgis.Success)
             else:
                 self.message(self.tr('Error'),  self.tr('Upload failed'),  Qgis.Critical)
+        
+        if self.chk_add_raster.isChecked():
+            self.load_raster_layer()
                             
         
     
@@ -286,3 +289,47 @@ class PGRasterImportDialog(QDialog, FORM_CLASS):
             return input_string.decode('utf-8')
         except:
             return input_string        
+            
+    def load_raster_layer(self):
+                
+#['user=hdus', 'password=xxx', 'dbname=raster', 'host=localhost', 'port=5432']
+#{'dbname': 'test', 'user': 'postgres', 'port': '5432', 'sslmode': 'prefer'}
+
+        conn,  passwd = self.init_DB(self.cmb_db_connections.currentText())
+        db_connection_params = conn.get_dsn_parameters()
+
+        uri_config = {
+            # database parameters
+            'dbname':'%s' % db_connection_params['dbname'],      # The PostgreSQL database to connect to.
+            'host':'%s'  % db_connection_params['host'],     # The host IP address or localhost.
+            'port':'%s'  % db_connection_params['port'],          # The port to connect on.
+            'sslmode':QgsDataSourceUri.SslDisable, # SslAllow, SslPrefer, SslRequire, SslVerifyCa, SslVerifyFull
+            # user and password are not needed if stored in the authcfg or service
+            'authcfg':'QconfigId',  # The QGIS athentication database ID holding connection details.
+            'service': None,         # The PostgreSQL service to be used for connection to the database.
+            'username': '%s'  % db_connection_params['user'],        # The PostgreSQL user name.
+            'password': '%s'  % passwd,        # The PostgreSQL password for the user.
+            # table and raster column details
+            'schema':'%s' % self.cmb_schema.currentText(),      # The database schema that the table is located in.
+            'table':'%s' % self.lne_table_name.text(),   # The database table to be loaded.
+            'geometrycolumn':'rast',# raster column in PostGIS table
+            'sql':None,             # An SQL WHERE clause. It should be placed at the end of the string.
+            'key':None,             # A key column from the table.
+            'srid':None,            # A string designating the SRID of the coordinate reference system.
+            'estimatedmetadata':'False', # A boolean value telling if the metadata is estimated.
+            'type':None,            # A WKT string designating the WKB Type.
+            'selectatid':None,      # Set to True to disable selection by feature ID.
+            'options':None,         # other PostgreSQL connection options not in this list.
+            'enableTime': None,
+            'temporalDefaultTime': None,
+            'temporalFieldIndex': None,
+            'mode':'2',             # GDAL 'mode' parameter, 2 unions raster tiles, 1 adds tiles separately (may require user input)
+        }
+        # remove any NULL parameters
+        uri_config = {key:val for key, val in uri_config.items() if val is not None}
+        # get the metadata for the raster provider and configure the URI
+        md = QgsProviderRegistry.instance().providerMetadata('postgresraster')
+        uri = QgsDataSourceUri(md.encodeUri(uri_config))
+
+        # the raster can then be loaded into the project
+        rlayer = self.iface.addRasterLayer(uri.uri(False), self.lne_table_name.text(), "postgresraster")        

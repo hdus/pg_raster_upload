@@ -137,10 +137,20 @@
       <enum>Qt::RightToLeft</enum>
      </property>
      <property name="text">
-      <string>create raster overviews</string>
+      <string>Create Raster Overviews</string>
      </property>
      <property name="checked">
       <bool>false</bool>
+     </property>
+    </widget>
+   </item>
+   <item row="6" column="0">
+    <widget class="QCheckBox" name="chk_add_raster">
+     <property name="layoutDirection">
+      <enum>Qt::RightToLeft</enum>
+     </property>
+     <property name="text">
+      <string>Add Raster to canvas</string>
      </property>
     </widget>
    </item>
