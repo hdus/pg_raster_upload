@@ -31,6 +31,7 @@ hasProcessingProvider=no
 changelog=
   1.0.6
   - Laundering of resulting database table improved
+  - Checkbox "Add Raster to Mapcanvas" added
   1.0.5
   - Tablename always to lowercase
   1.0.4
