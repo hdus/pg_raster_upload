@@ -121,22 +121,28 @@ class PGRasterImportDialog(QDialog, FORM_CLASS):
 
         if DBUSER == '' or DBPASSWD == '':
             connection_info = "dbname='{0}' host='{1}' port={2}".format(DBNAME,  DBHOST,  DBPORT)
-            (success, user, password) = QgsCredentials.instance().get(connection_info, None, None)
+            
+            if DBUSER == '':
+                (success, user, password) = QgsCredentials.instance().get(connection_info, None, None)
+            else:
+                (success, user, password) = QgsCredentials.instance().get(connection_info, DBUSER, None)
+                
             if not success:
+                QMessageBox.critical(None,  self.tr('Error'),  self.tr('Username or password incorrect!'))
                 return None
             QgsCredentials.instance().put(connection_info, user, password)
             DBUSER = user
             DBPASSWD = password
-        else:
-            connection_info = "dbname='{0}' host='{1}' port={2} user='{3}' password='{4}'".format(DBNAME,  DBHOST,  DBPORT,  DBUSER,  DBPASSWD)
 
+        connection_info = "dbname='{0}' host='{1}' port={2} user='{3}' password='{4}'".format(DBNAME,  DBHOST,  DBPORT,  DBUSER,  DBPASSWD)
+        
         try:
             conn = psycopg2.connect(connection_info)
-            self.cmb_schema.addItems(self.db_schemas(conn))
         except:
-            QMessageBox.critical(None,  self.tr(Error),  sys.exc_info()[1])
+            QMessageBox.critical(None,  self.tr('Error'),  sys.exc_info()[1])
             return None
             
+        self.cmb_schema.addItems(self.db_schemas(conn))
         return conn,  DBPASSWD
         
     def db_schemas(self,  conn):
