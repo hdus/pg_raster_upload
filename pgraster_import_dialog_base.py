@@ -100,6 +100,7 @@ class PGRasterImportDialog(QDialog, FORM_CLASS):
             
 
     def getDbSettings(self):
+        self.cmb_db_connections.clear()
         settings = QSettings()
         settings.beginGroup('PostgreSQL/connections')
         self.cmb_db_connections.addItem('------------')
@@ -114,23 +115,27 @@ class PGRasterImportDialog(QDialog, FORM_CLASS):
         settings = QSettings()
         mySettings = '/PostgreSQL/connections/' + selectedServer
         DBNAME = settings.value(mySettings + '/database')
-        DBUSER = settings.value(mySettings + '/username')
+        DBUSER = str(settings.value(mySettings + '/username'))
         DBHOST = settings.value(mySettings + '/host')
         DBPORT = settings.value(mySettings + '/port')
-        DBPASSWD = settings.value(mySettings + '/password')
+        DBPASSWD = str(settings.value(mySettings + '/password'))
 
-        if DBUSER == '' or DBPASSWD == '':
+        if DBPORT == None:
+            DBPORT = '5432'
+            
+        if DBUSER == 'NULL' or DBPASSWD == 'NULL':
             connection_info = "dbname='{0}' host='{1}' port={2}".format(DBNAME,  DBHOST,  DBPORT)
             
-            if DBUSER == '':
+            if DBUSER == 'NULL':
                 (success, user, password) = QgsCredentials.instance().get(connection_info, None, None)
             else:
-                (success, user, password) = QgsCredentials.instance().get(connection_info, DBUSER, None)
+                (success, user, password) = QgsCredentials.instance().get(connection_info, str(DBUSER), None)
                 
             if not success:
                 QMessageBox.critical(None,  self.tr('Error'),  self.tr('Username or password incorrect!'))
                 return None
-            QgsCredentials.instance().put(connection_info, user, password)
+                
+#            QgsCredentials.instance().put(connection_info, user, password)
             DBUSER = user
             DBPASSWD = password
 
@@ -139,7 +144,7 @@ class PGRasterImportDialog(QDialog, FORM_CLASS):
         try:
             conn = psycopg2.connect(connection_info)
         except:
-            QMessageBox.critical(None,  self.tr('Error'),  sys.exc_info()[1])
+            QMessageBox.critical(None,  self.tr('Error'),  str(sys.exc_info()[1]))
             return None
             
         self.cmb_schema.addItems(self.db_schemas(conn))
