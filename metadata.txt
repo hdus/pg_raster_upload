@@ -6,7 +6,7 @@
 name=PostGIS Raster Import
 qgisMinimumVersion=3.0
 description=Import Raster to PgRaster
-version=1.0.6
+version=1.0.7
 author=Dr. Horst Duester
 email=horst.duester@sourcepole.ch
 
@@ -29,6 +29,10 @@ repository=https://github.com/hdus/pg_raster_upload
 hasProcessingProvider=no
 # Uncomment the following line and add your changelog:
 changelog=
+  1.0.8
+  - Fix database login
+  1.0.7
+  - launder_table_name improved
   1.0.6
   - Laundering of resulting database table improved
   - Checkbox "Add Raster to Mapcanvas" added
