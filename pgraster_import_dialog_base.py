@@ -120,13 +120,13 @@ class PGRasterImportDialog(QDialog, FORM_CLASS):
         DBPORT = settings.value(mySettings + '/port')
         DBPASSWD = str(settings.value(mySettings + '/password'))
 
-        if DBPORT == None:
+        if DBPORT == None or DBPORT == 'NULL' or DBPORT == '':
             DBPORT = '5432'
             
-        if DBUSER == 'NULL' or DBPASSWD == 'NULL':
+        if DBUSER == 'NULL' or DBPASSWD == 'NULL' or DBUSER == '' or DBPASSWD == '':
             connection_info = "dbname='{0}' host='{1}' port={2}".format(DBNAME,  DBHOST,  DBPORT)
             
-            if DBUSER == 'NULL':
+            if DBUSER == 'NULL' or DBUSER == '':
                 (success, user, password) = QgsCredentials.instance().get(connection_info, None, None)
             else:
                 (success, user, password) = QgsCredentials.instance().get(connection_info, str(DBUSER), None)
@@ -281,6 +281,7 @@ class PGRasterImportDialog(QDialog, FORM_CLASS):
         @type str
         """
         self.lne_table_name.setText(self.launder_table_name(p0))
+        self.enable_buttons()
         
 #    @staticmethod
     def launder_table_name(self,  name):
