@@ -116,7 +116,7 @@ class RasterUpload(QObject):
 
    # create raster overviews
         if overviews:
-            for level in [4, 8, 16, 32]:
+            for level in [2, 4, 8, 16, 32,  64]:
                 
                 sql = 'drop table if exists "%s"."o_%d_%s"' %(opts['schema'],  level,  opts['table'])
                 self.cursor.execute(sql)
@@ -132,8 +132,8 @@ class RasterUpload(QObject):
                 try:
                     self.cursor.execute(self.make_sql_create_gist(index_table,  opts['column']))
                     self.conn.commit()
-                except psycopg2.errors.UndefinedTable:
-                    QMessageBox.warning(None, self.tr('Error'),  str(sys.exc_info()[1]))                                        
+                except:
+                    self.__error_message(str(sys.exc_info()[1])) 
                     return None            
                 
 
@@ -150,7 +150,7 @@ class RasterUpload(QObject):
             
             
     def __error_message(self, e):
-        result = QMessageBox.critical(
+        QMessageBox.critical(
             None,
             self.tr("Error"),
             self.tr("%s" % e),
