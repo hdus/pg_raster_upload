@@ -32,8 +32,7 @@ BEGIN
       || 'r.r_table_name = c.relname AND '
       || 'c.relnamespace = n.oid AND '
       || 'r.r_table_schema = ''%1$s'' and r.r_table_name = ''%2$s'' and r.r_raster_column = ''%3$s''', r_schema, r_table, col);
-
-
+  
   EXECUTE sql INTO sinfo;
   IF sinfo IS NULL THEN
       RAISE EXCEPTION '%.% raster column does not exist', tab::text, col;
@@ -51,7 +50,7 @@ BEGIN
 
   ttab := 'o_' || factor || '_' || r_table;
 
-  sql := 'CREATE TABLE ' || quote_ident(r_schema) ||'.'||quote_ident(ttab)
+  sql := 'CREATE TABLE ' || quote_ident(r_schema) ||'.'|| quote_ident(ttab)
       || ' AS SELECT ST_Retile_qgiscloud($1, $2, $3, $4, $5, $6, $7, $8) '
       || quote_ident(col);
       
@@ -68,7 +67,7 @@ BEGIN
   PERFORM AddOverviewConstraints(r_schema, ttab, col,
                                  r_schema, r_table, col, factor);
 
-  RETURN r_schema||'.'||ttab;
+  RETURN quote_ident(r_schema)||'.'||quote_ident(ttab);
 END;
 $BODY$
   LANGUAGE plpgsql VOLATILE STRICT

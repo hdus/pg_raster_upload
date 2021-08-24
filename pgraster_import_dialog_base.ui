@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>614</width>
-    <height>276</height>
+    <height>297</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -140,7 +140,7 @@
       <string>Create Raster Overviews</string>
      </property>
      <property name="checked">
-      <bool>false</bool>
+      <bool>true</bool>
      </property>
     </widget>
    </item>

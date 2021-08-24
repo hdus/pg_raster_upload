@@ -118,16 +118,25 @@ class RasterUpload(QObject):
         if overviews:
             for level in [2, 4, 8, 16, 32,  64, 128, 256]:
                 
-                sql = 'drop table if exists "%s"."o_%d_%s"' %(opts['schema'],  level,  opts['table'])
+                sql = 'drop table if exists "{schema}"."o_{level}_{table}"'.format(
+                                        schema = opts['schema'],  
+                                        level = level,  
+                                        table = opts['table'], )
+                                        
                 self.cursor.execute(sql)
                 self.conn.commit()
-                sql = "select st_createoverview_qgiscloud('%s'::text, '%s'::name, %d)" % (opts['schema_table'].replace('"',  ''),  opts['column'],  level)
+                sql = "select st_createoverview_qgiscloud('{schema}.{table}', '{column}', {level})".format(
+                                          schema = opts['schema'].replace('"', ''),  
+                                          table = opts['table'].replace('"', ''),   
+                                          column = opts['column'],  
+                                          level = level, )
+                                          
                 self.progress_label.setText(self.tr("Creating overview-level {level} for table '{table}'...").format(level=level,  table=opts['schema_table'].replace('"',  '')))
                 QApplication.processEvents()
                 self.cursor.execute(sql)
                 self.conn.commit()
                 
-                index_table = opts['schema']+'.o_'+str(level)+'_'+opts['table']
+                index_table = '"{schema}"."o_{level}_{table}"'.format(schema=opts['schema'],  level=str(level),  table=opts['table'])
                 
                 try:
                     self.cursor.execute(self.make_sql_create_gist(index_table,  opts['column']))
