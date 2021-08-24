@@ -6,7 +6,7 @@
 name=PostGIS Raster Import
 qgisMinimumVersion=3.0
 description=Import Raster to PgRaster
-version=1.0.9
+version=1.0.10
 author=Dr. Horst Duester
 email=horst.duester@sourcepole.ch
 
