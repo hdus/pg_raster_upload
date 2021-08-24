@@ -116,7 +116,7 @@ class RasterUpload(QObject):
 
    # create raster overviews
         if overviews:
-            for level in [2, 4, 8, 16, 32,  64]:
+            for level in [2, 4, 8, 16, 32,  64, 128, 256]:
                 
                 sql = 'drop table if exists "%s"."o_%d_%s"' %(opts['schema'],  level,  opts['table'])
                 self.cursor.execute(sql)
