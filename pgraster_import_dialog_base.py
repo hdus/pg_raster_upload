@@ -146,7 +146,8 @@ class PGRasterImportDialog(QDialog, FORM_CLASS):
         except:
             QMessageBox.critical(None,  self.tr('Error'),  str(sys.exc_info()[1]))
             return None
-            
+        
+        self.cmb_schema.clear()
         self.cmb_schema.addItems(self.db_schemas(conn))
         return conn,  DBPASSWD
         
