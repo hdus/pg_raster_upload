@@ -108,9 +108,10 @@ class PGRasterImportDialog(QDialog, FORM_CLASS):
         settings.endGroup()
         self.cmb_db_connections.setCurrentIndex(0)
         
-    def init_DB(self, selectedServer):
+    def init_DB(self, selectedServer: str) -> tuple[psycopg2.extensions.connection, str]:
+        """Ask for credentials and connect to DB. Return connection and password, or (None, None) if no connection possible."""
         if self.cmb_db_connections.currentIndex() == 0:
-            return None
+            return None, None
             
         settings = QSettings()
         mySettings = '/PostgreSQL/connections/' + selectedServer
@@ -133,7 +134,7 @@ class PGRasterImportDialog(QDialog, FORM_CLASS):
                 
             if not success:
                 QMessageBox.critical(None,  self.tr('Error'),  self.tr('Username or password incorrect!'))
-                return None
+                return None, None
                 
 #            QgsCredentials.instance().put(connection_info, user, password)
             DBUSER = user
@@ -145,13 +146,15 @@ class PGRasterImportDialog(QDialog, FORM_CLASS):
             conn = psycopg2.connect(connection_info)
         except:
             QMessageBox.critical(None,  self.tr('Error'),  str(sys.exc_info()[1]))
-            return None
-        
+            return None, None
+        return conn, DBPASSWD
+
+    def update_cmb_schema (self, schemas: list[str]):
         self.cmb_schema.clear()
-        self.cmb_schema.addItems(self.db_schemas(conn))
-        return conn,  DBPASSWD
-        
-    def db_schemas(self,  conn):
+        self.cmb_schema.addItems(schemas)
+
+    def db_schemas(self, conn):
+        """Retrieve valid schemas for import from DB connection `conn`"""
       
         sql = """
              SELECT n.nspname AS "Name"
@@ -163,12 +166,8 @@ class PGRasterImportDialog(QDialog, FORM_CLASS):
         cur.execute(sql)
         rows = cur.fetchall()
         
-        schema_list = []
-        for row in rows:
-            schema_list.append(row[0])
-            
-        return schema_list
-                    
+        schema_list = [row[0] for row in rows]
+        return schema_list                    
         
 #    @pyqtSlot()
 #    def on_button_box_accepted(self):
@@ -185,14 +184,15 @@ class PGRasterImportDialog(QDialog, FORM_CLASS):
     @pyqtSlot(str)
     def on_cmb_db_connections_currentIndexChanged(self, p0):
         """
-        Slot documentation goes here.
+        Update schema list when new DB is selected and enable buttons correspondingly.
         
-        @param p0 DESCRIPTION
+        @param p0 selected item
         @type str
         """
-        self.init_DB(p0)
-        self.enable_buttons()
-            
+        conn, _ = self.init_DB(p0)
+        if conn:
+            self.update_cmb_schema(self.db_schemas(conn))
+        self.enable_buttons()            
     
     @pyqtSlot()
     def on_btn_upload_clicked(self):
@@ -200,7 +200,7 @@ class PGRasterImportDialog(QDialog, FORM_CLASS):
         Slot documentation goes here.
         """
         conn,  password = self.init_DB(self.cmb_db_connections.currentText())
-        
+   
         if self.table_exists(conn,  self.cmb_schema.currentText(),  self.lne_table_name.text()):
             result = QMessageBox.question(
                 None,
