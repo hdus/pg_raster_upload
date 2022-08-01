@@ -83,7 +83,6 @@ class RasterUpload(QObject):
             self.cursor.execute(sql)
             self.conn.commit()              
         except psycopg2.errors.UndefinedObject:
-            QMessageBox.warning(None, self.tr('Error'),  self.tr('PostGIS Raster Extension not installed in destination DB'))
             return None
             
          
@@ -143,7 +142,7 @@ class RasterUpload(QObject):
                     self.conn.commit()
                 except:
                     self.__error_message(str(sys.exc_info()[1])) 
-                    return None            
+                    return False            
                 
 
         self.progress_label.setText(self.tr("Registering raster columns of table '%s'..." % (opts['schema_table'].replace('"',  ''))))
@@ -151,11 +150,6 @@ class RasterUpload(QObject):
         self.cursor.execute(self.make_sql_addrastercolumn(opts))
         self.conn.commit()
         self.progress_label.setText(self.tr("Upload successful finished"))
-            
-            
-                    # VACUUM
-#        self.cursor.execute(self.make_sql_vacuum(opts['table']))
-#        self.conn.commit
             
             
     def __error_message(self, e):
@@ -167,7 +161,7 @@ class RasterUpload(QObject):
                 QMessageBox.Ok),
             QMessageBox.Ok)
         
-        return None        
+        return False        
     
     ################################################################################ 
         
