@@ -92,7 +92,6 @@ class PGRasterImportDialog(QDialog, FORM_CLASS):
                 FROM information_schema.tables 
                 WHERE table_schema = '%s' and table_name = '%s')
             """ % (schema,  table)
-        QMessageBox.information(None,  '',  sql)
         cur = conn.cursor()
         cur.execute(sql)
         rows = cur.fetchall()        
@@ -228,9 +227,6 @@ class PGRasterImportDialog(QDialog, FORM_CLASS):
         
     
     def raster_upload(self,  conn):
-        if not raster_extension_exists(conn):
-            return False
-            
 #     If schema doesn't exists in DB create a new schema        
         if self.cmb_schema.currentText() not in self.db_schemas(conn):
             sql = """
