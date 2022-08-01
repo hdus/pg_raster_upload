@@ -200,6 +200,8 @@ class PGRasterImportDialog(QDialog, FORM_CLASS):
         Slot documentation goes here.
         """
         conn,  password = self.init_DB(self.cmb_db_connections.currentText())
+        if not conn:  # invalid DB connection or no connection possible (wrong password etc.)
+            return
    
         if self.table_exists(conn,  self.cmb_schema.currentText(),  self.lne_table_name.text()):
             result = QMessageBox.question(
@@ -312,6 +314,12 @@ class PGRasterImportDialog(QDialog, FORM_CLASS):
 #{'dbname': 'test', 'user': 'postgres', 'port': '5432', 'sslmode': 'prefer'}
 
         conn,  passwd = self.init_DB(self.cmb_db_connections.currentText())
+        if not conn:
+            self.message(self.tr('PostGIS Raster Import'),
+                         self.tr('Could not load raster layer: database connection not available'),
+                         Qgis.Warning)
+            return
+
         db_connection_params = conn.get_dsn_parameters()
 
         uri_config = {
