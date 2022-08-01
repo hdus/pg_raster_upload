@@ -6,7 +6,7 @@
 name=PostGIS Raster Import
 qgisMinimumVersion=3.0
 description=Import Raster to PgRaster
-version=1.0.11
+version=3.0.0
 author=Dr. Horst Duester
 email=horst.duester@sourcepole.ch
 
@@ -29,6 +29,10 @@ repository=https://github.com/hdus/pg_raster_upload
 hasProcessingProvider=no
 # Uncomment the following line and add your changelog:
 changelog=
+  3.0.0
+  - set to revision 3.0.0 due to QGIS 3
+  - Fixed pull request for fix #4
+  - better error handling with respect to no raster extension installed.
   1.0.11
   - clear schema combobox when new database selected
   1.0.10
