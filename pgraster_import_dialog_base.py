@@ -92,6 +92,7 @@ class PGRasterImportDialog(QDialog, FORM_CLASS):
                 FROM information_schema.tables 
                 WHERE table_schema = '%s' and table_name = '%s')
             """ % (schema,  table)
+        QMessageBox.information(None,  '',  sql)
         cur = conn.cursor()
         cur.execute(sql)
         rows = cur.fetchall()        
@@ -135,7 +136,6 @@ class PGRasterImportDialog(QDialog, FORM_CLASS):
                 QMessageBox.critical(None,  self.tr('Error'),  self.tr('Username or password incorrect!'))
                 return None
                 
-#            QgsCredentials.instance().put(connection_info, user, password)
             DBUSER = user
             DBPASSWD = password
 
@@ -147,8 +147,6 @@ class PGRasterImportDialog(QDialog, FORM_CLASS):
             QMessageBox.critical(None,  self.tr('Error'),  str(sys.exc_info()[1]))
             return None
         
-        self.cmb_schema.clear()
-        self.cmb_schema.addItems(self.db_schemas(conn))
         return conn,  DBPASSWD
         
     def db_schemas(self,  conn):
@@ -169,11 +167,7 @@ class PGRasterImportDialog(QDialog, FORM_CLASS):
             
         return schema_list
                     
-        
-#    @pyqtSlot()
-#    def on_button_box_accepted(self):
 
-    
     @pyqtSlot()
     def on_btn_close_clicked(self):
         """
@@ -190,8 +184,14 @@ class PGRasterImportDialog(QDialog, FORM_CLASS):
         @param p0 DESCRIPTION
         @type str
         """
-        self.init_DB(p0)
-        self.enable_buttons()
+        self.cmb_schema.clear()
+        if self.init_DB(p0) != None:
+            conn,  passwd = self.init_DB(p0)
+            if self.raster_extension_exists(conn):
+                self.cmb_schema.addItems(self.db_schemas(conn))
+                self.enable_buttons()
+            else:
+                QMessageBox.warning(None, self.tr('Error'),  self.tr('PostGIS Raster Extension not installed in destination DB'))
             
     
     @pyqtSlot()
@@ -200,7 +200,6 @@ class PGRasterImportDialog(QDialog, FORM_CLASS):
         Slot documentation goes here.
         """
         conn,  password = self.init_DB(self.cmb_db_connections.currentText())
-        
         if self.table_exists(conn,  self.cmb_schema.currentText(),  self.lne_table_name.text()):
             result = QMessageBox.question(
                 None,
@@ -216,8 +215,6 @@ class PGRasterImportDialog(QDialog, FORM_CLASS):
                     self.message(self.tr('Success'),  self.tr('Raster successful uploaded to database'),  Qgis.Success)
                 else:
                     self.message(self.tr('Error'),  self.tr('Upload failed'),  Qgis.Critical)
-            else:
-                self.message(self.tr('Error'),  self.tr('Upload failed'),  Qgis.Critical)
                 
         else:
             if self.raster_upload(conn):
@@ -231,6 +228,9 @@ class PGRasterImportDialog(QDialog, FORM_CLASS):
         
     
     def raster_upload(self,  conn):
+        if not raster_extension_exists(conn):
+            return False
+            
 #     If schema doesn't exists in DB create a new schema        
         if self.cmb_schema.currentText() not in self.db_schemas(conn):
             sql = """
@@ -252,12 +252,12 @@ class PGRasterImportDialog(QDialog, FORM_CLASS):
                     }
             
             with OverrideCursor(Qt.WaitCursor):
-                RasterUpload(conn,  raster_to_upload,  self.chk_overviews.isChecked(),  self.progress_label,  self.progress_bar)
+                success = RasterUpload(conn,  raster_to_upload,  self.chk_overviews.isChecked(),  self.progress_label,  self.progress_bar)
                 
             conn.close()
-            return True
+            return success
         else:
-            res = QMessageBox.information(
+            QMessageBox.information(
                 self,
                 self.tr("Warning"),
                 self.tr("""Layers of type {0} are not supported!""".format(layer.dataProvider().name())),
@@ -284,6 +284,19 @@ class PGRasterImportDialog(QDialog, FORM_CLASS):
         self.lne_table_name.setText(self.launder_table_name(p0))
         self.enable_buttons()
         
+    def raster_extension_exists(self,  conn):
+        sql = 'SELECT extname FROM pg_extension;'
+        cursor = conn.cursor()
+        cursor.execute(sql)
+        conn.commit()
+        result = cursor.fetchall()
+        
+        for extension in result:
+            if str(extension) == "('postgis_raster',)":
+                return True
+                
+        return False
+            
 #    @staticmethod
     def launder_table_name(self,  name):
         # OGRPGDataSource::LaunderName
