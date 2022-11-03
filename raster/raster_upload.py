@@ -32,6 +32,7 @@ import math
 import numpy
 import os
 import sys
+from psycopg2 import sql as psycopg2_sql
 import psycopg2
 
 ################################################################################
@@ -151,7 +152,10 @@ class RasterUpload(QObject):
         self.conn.commit()
         self.progress_label.setText(self.tr("Upload successful finished"))
             
-            
+    def psycopg2_version(self):
+        version_array = psycopg2.__version__.split(' ')[0].split('.')
+        return int(version_array[0])*10000+int(version_array[1])*100+int(version_array[2])
+        
     def __error_message(self, e):
         QMessageBox.critical(
             None,
@@ -663,6 +667,16 @@ class RasterUpload(QObject):
         sum_tiles = grid_size[0]*grid_size[1]
         self.progress_bar.setMaximum(sum_tiles)
 
+        copy_table_sql = ""
+        if self.psycopg2_version() >= 20900:
+            # build SQL for copy_expert call
+            copy_table_sql = psycopg2_sql.SQL(
+                "COPY {schema}.{table} FROM STDIN"
+            ).format(
+                schema=psycopg2_sql.Identifier(options['schema']),
+                table=psycopg2_sql.Identifier(options['table'])
+            )
+
         copy_size = 500
         
         for ycell in range(0, grid_size[1]):
@@ -690,7 +704,10 @@ class RasterUpload(QObject):
                 
             # Periodically update ui
                 if (tile_count % copy_size) == 0:
-                    self.cursor.copy_from(StringIO(importString), '%s' % gen_table)
+                    if self.psycopg2_version() >= 20900:
+                        self.cursor.copy_expert(copy_table_sql, StringIO(importString))
+                    else:
+                        self.cursor.copy_from(StringIO(importString), '%s' % gen_table)
                     importString = ""
                     self.progress_bar.setValue(tile_count)
 #                    self.progress_label.setText(self.tr("{table}: {count} of {sum_tiles} tiles uploaded").format(
@@ -701,7 +718,10 @@ class RasterUpload(QObject):
                     QApplication.processEvents()
 
         self.progress_bar.setValue(sum_tiles)
-        self.cursor.copy_from(StringIO(importString), '%s' % gen_table)
+        if self.psycopg2_version() >= 20900:
+            self.cursor.copy_expert(copy_table_sql, StringIO(importString))
+        else:
+            self.cursor.copy_from(StringIO(importString), '%s' % gen_table)
         self.conn.commit()
         
         self.progress_label.setText(self.tr("Calculating raster params for {sum_tiles} tiles ...").format(
