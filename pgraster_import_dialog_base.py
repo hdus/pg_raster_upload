@@ -119,26 +119,32 @@ class PGRasterImportDialog(QDialog, FORM_CLASS):
         DBHOST = settings.value(mySettings + '/host')
         DBPORT = settings.value(mySettings + '/port')
         DBPASSWD = str(settings.value(mySettings + '/password'))
-
-        if DBPORT == None or DBPORT == 'NULL' or DBPORT == '':
-            DBPORT = '5432'
+        SERVICE_NAME = str(settings.value(mySettings + '/service'))
+        
+        if SERVICE_NAME:
             
-        if DBUSER == 'NULL' or DBPASSWD == 'NULL' or DBUSER == '' or DBPASSWD == '':
-            connection_info = "dbname='{0}' host='{1}' port={2}".format(DBNAME,  DBHOST,  DBPORT)
-            
-            if DBUSER == 'NULL' or DBUSER == '':
-                (success, user, password) = QgsCredentials.instance().get(connection_info, None, None)
-            else:
-                (success, user, password) = QgsCredentials.instance().get(connection_info, str(DBUSER), None)
-                
-            if not success:
-                QMessageBox.critical(None,  self.tr('Error'),  self.tr('Username or password incorrect!'))
-                return None
-                
-            DBUSER = user
-            DBPASSWD = password
+            connection_info = "service='{0}'".format( SERVICE_NAME)
+        else:
 
-        connection_info = "dbname='{0}' host='{1}' port={2} user='{3}' password='{4}'".format(DBNAME,  DBHOST,  DBPORT,  DBUSER,  DBPASSWD)
+            if DBPORT == None or DBPORT == 'NULL' or DBPORT == '':
+                DBPORT = '5432'
+                
+            if DBUSER == 'NULL' or DBPASSWD == 'NULL' or DBUSER == '' or DBPASSWD == '':
+                connection_info = "dbname='{0}' host='{1}' port={2}".format(DBNAME,  DBHOST,  DBPORT)
+                
+                if DBUSER == 'NULL' or DBUSER == '':
+                    (success, user, password) = QgsCredentials.instance().get(connection_info, None, None)
+                else:
+                    (success, user, password) = QgsCredentials.instance().get(connection_info, str(DBUSER), None)
+                    
+                if not success:
+                    QMessageBox.critical(None,  self.tr('Error'),  self.tr('Username or password incorrect!'))
+                    return None
+                    
+                DBUSER = user
+                DBPASSWD = password
+
+            connection_info = "dbname='{0}' host='{1}' port={2} user='{3}' password='{4}'".format(DBNAME,  DBHOST,  DBPORT,  DBUSER,  DBPASSWD)
         
         try:
             conn = psycopg2.connect(connection_info)
