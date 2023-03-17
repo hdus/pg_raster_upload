@@ -226,8 +226,8 @@ class PGRasterImportDialog(QDialog, FORM_CLASS):
                 else:
                     self.message(self.tr('Error'),  self.tr('Upload failed'),  Qgis.Critical)
             else:
-                self.message(self.tr('Error'),  self.tr('Upload failed'),  Qgis.Critical)
-                
+                self.message(self.tr('PostGIS Raster Import'), self.tr('Upload cancelled'),  Qgis.Warning)
+                return  # Do not add layer if upload was cancelled by user
         else:
             if self.raster_upload(conn):
                 self.message(self.tr('Success'),  self.tr('Raster successful uploaded to database'),  Qgis.Success)
