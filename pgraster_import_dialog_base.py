@@ -150,7 +150,7 @@ class PGRasterImportDialog(QDialog, FORM_CLASS):
                 DBUSER = user
                 DBPASSWD = password
     
-            connection_info = "dbname='{0}' host='{1}' port={2} user='{3}' password='{4}'".format(DBNAME,  DBHOST,  DBPORT,  DBUSER,  DBPASSWD)
+            connection_info = "dbname='{0}' host='{1}' port={2} user='{3}' password='{4}'".format(DBNAME, DBHOST, DBPORT, DBUSER, DBPASSWD)
         
         try:
             conn = psycopg2.connect(connection_info)
@@ -236,7 +236,6 @@ class PGRasterImportDialog(QDialog, FORM_CLASS):
         
         if self.chk_add_raster.isChecked():
             self.load_raster_layer()
-                            
         
     
     def raster_upload(self,  conn):
@@ -333,7 +332,7 @@ class PGRasterImportDialog(QDialog, FORM_CLASS):
 #['user=hdus', 'password=xxx', 'dbname=raster', 'host=localhost', 'port=5432']
 #{'dbname': 'test', 'user': 'postgres', 'port': '5432', 'sslmode': 'prefer'}
 
-        conn,  passwd = self.init_DB(self.cmb_db_connections.currentText())
+        conn, passwd = self.init_DB(self.cmb_db_connections.currentText())
         if not conn:
             self.message(self.tr('PostGIS Raster Import'),
                          self.tr('Could not load raster layer: database connection not available'),
@@ -341,18 +340,27 @@ class PGRasterImportDialog(QDialog, FORM_CLASS):
             return
 
         db_connection_params = conn.get_dsn_parameters()
+        if passwd:
+            uri_authcfg = 'QconfigId'
+            uri_username = '%s' % db_connection_params['user']
+            uri_passwd = '%s' % passwd
+            # TODO: if service has been used for init_DB, will username+password work here?
+        else:  # authentication without Qgis credentials
+            uri_authcfg = None
+            uri_username = None
+            uri_passwd = None  # skip password in uri_config if it is empty string
 
         uri_config = {
             # database parameters
-            'dbname':'%s' % db_connection_params['dbname'],      # The PostgreSQL database to connect to.
-            'host':'%s'  % db_connection_params['host'],     # The host IP address or localhost.
-            'port':'%s'  % db_connection_params['port'],          # The port to connect on.
-            'sslmode':QgsDataSourceUri.SslDisable, # SslAllow, SslPrefer, SslRequire, SslVerifyCa, SslVerifyFull
+            'dbname': '%s' % db_connection_params['dbname'],      # The PostgreSQL database to connect to.
+            'host': '%s' % db_connection_params['host'],     # The host IP address or localhost.
+            'port': '%s' % db_connection_params['port'],          # The port to connect on.
+            'sslmode': QgsDataSourceUri.SslDisable, # SslAllow, SslPrefer, SslRequire, SslVerifyCa, SslVerifyFull
             # user and password are not needed if stored in the authcfg or service
-            'authcfg':'QconfigId',  # The QGIS athentication database ID holding connection details.
-            'service': None,         # The PostgreSQL service to be used for connection to the database.
-            'username': '%s'  % db_connection_params['user'],        # The PostgreSQL user name.
-            'password': '%s'  % passwd,        # The PostgreSQL password for the user.
+            'authcfg': uri_authcfg,  # The QGIS athentication database ID holding connection details.
+            'service': None, # TODO: see above    # The PostgreSQL service to be used for connection to the database.
+            'username': uri_username,  # The PostgreSQL user name.
+            'password': uri_passwd,    # The PostgreSQL password for the user.
             # table and raster column details
             'schema':'%s' % self.cmb_schema.currentText(),      # The database schema that the table is located in.
             'table':'%s' % self.lne_table_name.text(),   # The database table to be loaded.
