@@ -122,8 +122,8 @@ class PGRasterImportDialog(QDialog, FORM_CLASS):
         DBPASSWD = str(settings.value(mySettings + '/password'))
         SERVICE_NAME = str(settings.value(mySettings + '/service'))
         
-        if SERVICE_NAME:
-            connection_info = "service='{0}'".format( SERVICE_NAME)
+        if SERVICE_NAME and SERVICE_NAME != 'NULL' and SERVICE_NAME != '':
+            connection_info = "service='{0}'".format(SERVICE_NAME)
         else:
             if DBPORT == None or DBPORT == 'NULL' or DBPORT == '':
                 DBPORT = '5432'
