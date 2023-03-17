@@ -109,8 +109,9 @@ class PGRasterImportDialog(QDialog, FORM_CLASS):
         self.cmb_db_connections.setCurrentIndex(0)
         
     def init_DB(self, selectedServer):
+        """Connect to DB, asking for credentials if necessary. Return connection and password, or (None, None) if no connection possible."""
         if self.cmb_db_connections.currentIndex() == 0:
-            return None
+            return None, None
             
         settings = QSettings()
         mySettings = '/PostgreSQL/connections/' + selectedServer
@@ -122,37 +123,42 @@ class PGRasterImportDialog(QDialog, FORM_CLASS):
         SERVICE_NAME = str(settings.value(mySettings + '/service'))
         
         if SERVICE_NAME:
-            
             connection_info = "service='{0}'".format( SERVICE_NAME)
         else:
-
             if DBPORT == None or DBPORT == 'NULL' or DBPORT == '':
                 DBPORT = '5432'
                 
             if DBUSER == 'NULL' or DBPASSWD == 'NULL' or DBUSER == '' or DBPASSWD == '':
-                connection_info = "dbname='{0}' host='{1}' port={2}".format(DBNAME,  DBHOST,  DBPORT)
-                
+                connection_info = "dbname='{0}' host='{1}' port={2}".format(DBNAME,  DBHOST,  DBPORT)                
                 if DBUSER == 'NULL' or DBUSER == '':
-                    (success, user, password) = QgsCredentials.instance().get(connection_info, None, None)
+                    try:  # try connecting without asking for credentials (e.g. Postgres is set up with Windows authentication)
+                        conn = psycopg2.connect(connection_info)
+                        if conn:
+                            (success, user, password) = (True, '', '')
+                            conn.close()
+                        else:
+                            success = False
+                    except:
+                        (success, user, password) = QgsCredentials.instance().get(connection_info, None, None)
                 else:
                     (success, user, password) = QgsCredentials.instance().get(connection_info, str(DBUSER), None)
                     
                 if not success:
                     QMessageBox.critical(None,  self.tr('Error'),  self.tr('Username or password incorrect!'))
-                    return None
-                    
+                    return None, None
+
                 DBUSER = user
                 DBPASSWD = password
-
+    
             connection_info = "dbname='{0}' host='{1}' port={2} user='{3}' password='{4}'".format(DBNAME,  DBHOST,  DBPORT,  DBUSER,  DBPASSWD)
         
         try:
             conn = psycopg2.connect(connection_info)
         except:
             QMessageBox.critical(None,  self.tr('Error'),  str(sys.exc_info()[1]))
-            return None
+            return None, None
         
-        return conn,  DBPASSWD
+        return conn, DBPASSWD
         
     def db_schemas(self,  conn):
       
@@ -184,19 +190,20 @@ class PGRasterImportDialog(QDialog, FORM_CLASS):
     @pyqtSlot(str)
     def on_cmb_db_connections_currentIndexChanged(self, p0):
         """
-        Slot documentation goes here.
+        Update schema list when new DB is selected and enable buttons correspondingly.
         
-        @param p0 DESCRIPTION
+        @param p0 selected item
         @type str
         """
         self.cmb_schema.clear()
-        if self.init_DB(p0) != None:
-            conn,  passwd = self.init_DB(p0)
-            if self.raster_extension_exists(conn):
-                self.cmb_schema.addItems(self.db_schemas(conn))
-                self.enable_buttons()
-            else:
-                QMessageBox.warning(None, self.tr('Error'),  self.tr('PostGIS Raster Extension not installed in destination DB'))
+        conn, passwd = self.init_DB(p0)
+        if not conn:
+            return
+        if self.raster_extension_exists(conn):
+            self.cmb_schema.addItems(self.db_schemas(conn))
+            self.enable_buttons()
+        else:
+            QMessageBox.warning(None, self.tr('Error'),  self.tr('PostGIS Raster Extension not installed in destination DB'))
             
     
     @pyqtSlot()
@@ -220,6 +227,8 @@ class PGRasterImportDialog(QDialog, FORM_CLASS):
                     self.message(self.tr('Success'),  self.tr('Raster successful uploaded to database'),  Qgis.Success)
                 else:
                     self.message(self.tr('Error'),  self.tr('Upload failed'),  Qgis.Critical)
+            else:
+                self.message(self.tr('Error'),  self.tr('Upload failed'),  Qgis.Critical)
                 
         else:
             if self.raster_upload(conn):
