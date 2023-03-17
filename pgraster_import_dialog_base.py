@@ -109,7 +109,7 @@ class PGRasterImportDialog(QDialog, FORM_CLASS):
         self.cmb_db_connections.setCurrentIndex(0)
         
     def init_DB(self, selectedServer):
-        """Connect to DB, asking for credentials if necessary. Return connection and password, or (None, None) if no connection possible."""
+        """Connect to DB, asking for credentials if neccessary. Return connection and password, or (None, None) if no connection possible."""
         if self.cmb_db_connections.currentIndex() == 0:
             return None, None
             
@@ -161,7 +161,7 @@ class PGRasterImportDialog(QDialog, FORM_CLASS):
         return conn, DBPASSWD
         
     def db_schemas(self,  conn):
-      
+        """Retrieve valid schemas for import from DB connection `conn`"""      
         sql = """
              SELECT n.nspname AS "Name"
                FROM pg_catalog.pg_namespace n                                      
@@ -170,14 +170,9 @@ class PGRasterImportDialog(QDialog, FORM_CLASS):
         """
         cur = conn.cursor()
         cur.execute(sql)
-        rows = cur.fetchall()
-        
-        schema_list = []
-        for row in rows:
-            schema_list.append(row[0])
-            
-        return schema_list
-                    
+        rows = cur.fetchall()        
+        schema_list = [row[0] for row in rows]
+        return schema_list           
 
     @pyqtSlot()
     def on_btn_close_clicked(self):
@@ -212,6 +207,9 @@ class PGRasterImportDialog(QDialog, FORM_CLASS):
         Slot documentation goes here.
         """
         conn,  password = self.init_DB(self.cmb_db_connections.currentText())
+        if not conn:  # invalid DB connection or no connection possible (wrong password etc.)
+            return
+   
         if self.table_exists(conn,  self.cmb_schema.currentText(),  self.lne_table_name.text()):
             result = QMessageBox.question(
                 None,
@@ -336,6 +334,12 @@ class PGRasterImportDialog(QDialog, FORM_CLASS):
 #{'dbname': 'test', 'user': 'postgres', 'port': '5432', 'sslmode': 'prefer'}
 
         conn,  passwd = self.init_DB(self.cmb_db_connections.currentText())
+        if not conn:
+            self.message(self.tr('PostGIS Raster Import'),
+                         self.tr('Could not load raster layer: database connection not available'),
+                         Qgis.Warning)
+            return
+
         db_connection_params = conn.get_dsn_parameters()
 
         uri_config = {
