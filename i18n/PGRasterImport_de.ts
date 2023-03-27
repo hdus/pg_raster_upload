@@ -54,13 +54,15 @@
         <location filename="../about/about.py" line="52"/>
         <source>Contact:
 </source>
-        <translation>Kontakt:</translation>
+        <translation>Kontakt:
+</translation>
     </message>
     <message>
         <location filename="../about/about.py" line="55"/>
         <source>Plugin Resources:
 </source>
-        <translation>Plugin-Ressourcen:</translation>
+        <translation>Plugin-Ressourcen:
+</translation>
     </message>
 </context>
 <context>
@@ -79,24 +81,79 @@
 <context>
     <name>PGRasterImportDialog</name>
     <message>
-        <location filename="../pgraster_import_dialog_base.py" line="128"/>
+        <location filename="../pgraster_import_dialog_base.py" line="235"/>
         <source>Error</source>
         <translation>Fehler</translation>
     </message>
     <message>
         <location filename="../pgraster_import_dialog_base.py" line="128"/>
         <source>No Database Connection Established.</source>
-        <translation>Es wurde keine Datenbankverbindung hergestellt.</translation>
+        <translation type="obsolete">Es wurde keine Datenbankverbindung hergestellt.</translation>
     </message>
     <message>
-        <location filename="../pgraster_import_dialog_base.py" line="195"/>
+        <location filename="../pgraster_import_dialog_base.py" line="214"/>
         <source>Table exists</source>
         <translation>Die Tabelle existiert</translation>
     </message>
     <message>
-        <location filename="../pgraster_import_dialog_base.py" line="195"/>
+        <location filename="../pgraster_import_dialog_base.py" line="214"/>
         <source>The selected table already exists in the database. Do you want to overwrite the table?</source>
         <translation>Die ausgewählte Tabelle existiert bereits in der Datenbank. Möchten Sie die Tabelle überschreiben?</translation>
+    </message>
+    <message>
+        <location filename="../pgraster_import_dialog_base.py" line="58"/>
+        <source>%s</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../pgraster_import_dialog_base.py" line="147"/>
+        <source>Username or password incorrect!</source>
+        <translation>Falscher Benutzername oder falsches Passwort!</translation>
+    </message>
+    <message>
+        <location filename="../pgraster_import_dialog_base.py" line="201"/>
+        <source>PostGIS Raster Extension not installed in destination DB</source>
+        <translation>Erweiterung „PostGIS Raster“ ist nicht in der Zieldatenbank installiert</translation>
+    </message>
+    <message>
+        <location filename="../pgraster_import_dialog_base.py" line="233"/>
+        <source>Success</source>
+        <translation>Erfolg</translation>
+    </message>
+    <message>
+        <location filename="../pgraster_import_dialog_base.py" line="233"/>
+        <source>Raster successful uploaded to database</source>
+        <translation>Raster wurde erfolgreich in die Datenbank geladen</translation>
+    </message>
+    <message>
+        <location filename="../pgraster_import_dialog_base.py" line="235"/>
+        <source>Upload failed</source>
+        <translation>Hochladen gescheitert</translation>
+    </message>
+    <message>
+        <location filename="../pgraster_import_dialog_base.py" line="337"/>
+        <source>PostGIS Raster Import</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../pgraster_import_dialog_base.py" line="229"/>
+        <source>Upload cancelled</source>
+        <translation>Upload abgebrochen</translation>
+    </message>
+    <message>
+        <location filename="../pgraster_import_dialog_base.py" line="268"/>
+        <source>Warning</source>
+        <translation>Warnung</translation>
+    </message>
+    <message>
+        <location filename="../pgraster_import_dialog_base.py" line="268"/>
+        <source>Layers of type {0} are not supported!</source>
+        <translation>Layer des Typs {0} werden nicht unterstützt!</translation>
+    </message>
+    <message>
+        <location filename="../pgraster_import_dialog_base.py" line="337"/>
+        <source>Could not load raster layer: database connection not available</source>
+        <translation>Kann den Rasterlayer nicht laden: die Datenbankverbindung ist nicht verfügbar</translation>
     </message>
 </context>
 <context>
@@ -107,77 +164,94 @@
         <translation></translation>
     </message>
     <message>
-        <location filename="../pgraster_import_dialog_base.ui" line="30"/>
-        <source>...</source>
-        <translation></translation>
-    </message>
-    <message>
-        <location filename="../pgraster_import_dialog_base.ui" line="40"/>
+        <location filename="../pgraster_import_dialog_base.ui" line="33"/>
         <source>Tablename:</source>
         <translation>Tabellenname:</translation>
     </message>
     <message>
-        <location filename="../pgraster_import_dialog_base.ui" line="50"/>
+        <location filename="../pgraster_import_dialog_base.ui" line="47"/>
         <source>Raster Layer:</source>
         <translation>Rasterebene:</translation>
     </message>
     <message>
-        <location filename="../pgraster_import_dialog_base.ui" line="57"/>
+        <location filename="../pgraster_import_dialog_base.ui" line="54"/>
         <source>DB-Connection:</source>
         <translation>DB-Verbindung:</translation>
     </message>
     <message>
-        <location filename="../pgraster_import_dialog_base.ui" line="64"/>
+        <location filename="../pgraster_import_dialog_base.ui" line="61"/>
         <source>Schema</source>
         <translation>Schema:</translation>
     </message>
     <message>
-        <location filename="../pgraster_import_dialog_base.ui" line="100"/>
+        <location filename="../pgraster_import_dialog_base.ui" line="97"/>
         <source>Upload</source>
         <translation>Hochladen</translation>
     </message>
     <message>
-        <location filename="../pgraster_import_dialog_base.ui" line="113"/>
+        <location filename="../pgraster_import_dialog_base.ui" line="110"/>
         <source>Close</source>
-        <translation>schliessen</translation>
+        <translation>Schließen</translation>
     </message>
     <message>
-        <location filename="../pgraster_import_dialog_base.ui" line="133"/>
+        <location filename="../pgraster_import_dialog_base.ui" line="130"/>
         <source>About</source>
         <translation>Über</translation>
+    </message>
+    <message>
+        <location filename="../pgraster_import_dialog_base.ui" line="140"/>
+        <source>Create Raster Overviews</source>
+        <translatorcomment>besser: „Rasterübersichten (Pyramiden) erzeugen“, passte aber nicht ins Layout</translatorcomment>
+        <translation>Übersichten erzeugen</translation>
+    </message>
+    <message>
+        <location filename="../pgraster_import_dialog_base.ui" line="153"/>
+        <source>Add Raster to canvas</source>
+        <translatorcomment>besser: „Raster zur Karte hinzufügen“, passt aber nicht ins Layout</translatorcomment>
+        <translation>zur Karte hinzufügen</translation>
     </message>
 </context>
 <context>
     <name>RasterUpload</name>
     <message>
-        <location filename="../raster/raster_upload.py" line="103"/>
+        <location filename="../raster/raster_upload.py" line="102"/>
         <source>Creating table &apos;{table}&apos;...</source>
-        <translation>Tabelle &apos;{table}&apos; erstellen...</translation>
+        <translation>Tabelle„{table}“ erstellen…</translation>
     </message>
     <message>
-        <location filename="../raster/raster_upload.py" line="125"/>
+        <location filename="../raster/raster_upload.py" line="134"/>
         <source>Creating overview-level {level} for table &apos;{table}&apos;...</source>
-        <translation>Übersichtsebene {level} für Tabelle &apos;{table}&apos; anlegen...</translation>
+        <translation>Übersichtsebene {level} für Tabelle „{table}“ anlegen…</translation>
     </message>
     <message>
-        <location filename="../raster/raster_upload.py" line="135"/>
+        <location filename="../raster/raster_upload.py" line="149"/>
         <source>Registering raster columns of table &apos;%s&apos;...</source>
-        <translation>Rasterspalten der Tabelle &apos;%s&apos; werden registriert ...</translation>
+        <translation>Rasterspalten der Tabelle „%s“ werden registriert…</translation>
     </message>
     <message>
-        <location filename="../raster/raster_upload.py" line="139"/>
+        <location filename="../raster/raster_upload.py" line="153"/>
         <source>Upload successful finished</source>
         <translation>Hochladen erfolgreich beendet</translation>
     </message>
     <message>
-        <location filename="../raster/raster_upload.py" line="644"/>
+        <location filename="../raster/raster_upload.py" line="665"/>
         <source>Uploading tiles...</source>
-        <translation>Kacheln hochladen...</translation>
+        <translation>Kacheln hochladen…</translation>
     </message>
     <message>
-        <location filename="../raster/raster_upload.py" line="690"/>
+        <location filename="../raster/raster_upload.py" line="727"/>
         <source>Calculating raster params for {sum_tiles} tiles ...</source>
-        <translation>Berechnung von Rasterparametern für {sum_tiles}-Kacheln ...</translation>
+        <translation>Berechnung von Rasterparametern für {sum_tiles}-Kacheln…</translation>
+    </message>
+    <message>
+        <location filename="../raster/raster_upload.py" line="160"/>
+        <source>Error</source>
+        <translation>Fehler</translation>
+    </message>
+    <message>
+        <location filename="../raster/raster_upload.py" line="160"/>
+        <source>%s</source>
+        <translation type="unfinished"></translation>
     </message>
 </context>
 </TS>
