@@ -227,6 +227,7 @@ class PGRasterImportDialog(QDialog, FORM_CLASS):
                     self.message(self.tr('Success'),  self.tr('Raster successful uploaded to database'),  Qgis.Success)
                 else:
                     self.message(self.tr('Error'),  self.tr('Upload failed'),  Qgis.Critical)
+                    return  # Do not add layer if upload failed
             else:
                 self.message(self.tr('PostGIS Raster Import'), self.tr('Upload cancelled'),  Qgis.Warning)
                 return  # Do not add layer if upload was cancelled by user
@@ -235,6 +236,8 @@ class PGRasterImportDialog(QDialog, FORM_CLASS):
                 self.message(self.tr('Success'),  self.tr('Raster successful uploaded to database'),  Qgis.Success)
             else:
                 self.message(self.tr('Error'),  self.tr('Upload failed'),  Qgis.Critical)
+                return  # Do not add layer if upload failed
+        self.progress_bar.setValue(0)
         
         if self.chk_add_raster.isChecked():
             self.load_raster_layer()
@@ -251,6 +254,10 @@ class PGRasterImportDialog(QDialog, FORM_CLASS):
         
         
         layer = self.cmb_map_layer.currentLayer()
+        if not layer.dataProvider().crs().isValid():
+            QMessageBox.warning(self, self.tr('Warning'),
+                                self.tr('Raster has no valid CRS'))
+            return False
         if layer.dataProvider().name() == 'gdal':
             raster_to_upload = {
                         'layer': layer,
@@ -274,7 +281,6 @@ class PGRasterImportDialog(QDialog, FORM_CLASS):
                 QMessageBox.StandardButtons(
                     QMessageBox.Ok))
             return False
-            
     
     @pyqtSlot()
     def on_btn_about_clicked(self):

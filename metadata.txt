@@ -30,6 +30,7 @@ hasProcessingProvider=no
 # Uncomment the following line and add your changelog:
 changelog=
   3.2.1
+  - Do not import rasters without valid CRS
   - Fix “definition of service "None" not found” error when selecting DB
   3.2.0
   - Do not ask for credentials if not necessary

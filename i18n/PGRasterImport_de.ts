@@ -155,6 +155,16 @@
         <source>Could not load raster layer: database connection not available</source>
         <translation>Kann den Rasterlayer nicht laden: die Datenbankverbindung ist nicht verfügbar</translation>
     </message>
+    <message>
+        <location filename="../pgraster_import_dialog_base.py" line="158"/>
+        <source>Cannot connect to {0}: Exception info: {1}</source>
+        <translation>Keine Verbindung mit {0} möglich: Exception-Info: {1}</translation>
+    </message>
+    <message>
+        <location filename="../pgraster_import_dialog_base.py" line="258"/>
+        <source>Raster has no valid CRS</source>
+        <translation>Raster hat kein gültiges KBS</translation>
+    </message>
 </context>
 <context>
     <name>PGRasterImportDialogBase</name>
