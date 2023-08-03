@@ -31,7 +31,7 @@ from qgis.PyQt.QtCore import (
     QCoreApplication
 )
 from qgis.PyQt.QtGui import QIcon
-from qgis.PyQt.QtWidgets import QAction
+from qgis.PyQt.QtWidgets import QAction, QMenu
 
 # Initialize Qt resources from file resources.py
 from .resources_rc import *
@@ -69,7 +69,7 @@ class PGRasterImport:
 
         # Declare instance attributes
         self.actions = []
-        self.menu = self.tr(u'&PostGIS Raster Import')
+        self.menu = QMenu(self.tr(u'&PostGIS Raster Import'))
 
         # Check if plugin was started the first time in current QGIS session
         # Must be set in initGui() to survive plugin reloads
@@ -157,9 +157,7 @@ class PGRasterImport:
             self.iface.addDatabaseToolBarIcon(action)
 
         if add_to_menu:
-            self.iface.addPluginToDatabaseMenu(
-                self.menu,
-                action)
+            self.menu.addAction(action)
 
         self.actions.append(action)
 
@@ -168,19 +166,21 @@ class PGRasterImport:
     def initGui(self):
         """Create the menu entries and toolbar icons inside the QGIS GUI."""
 
-        icon_path = ':/plugins/pgraster_import/icon.png'
+        resource_prefix = ':/plugins/pgraster_import/icons'        
+        self.menu = QMenu(self.tr('PostGIS Raster Import'))
+        self.menu.setIcon(QIcon(resource_prefix + '/icon.png'))
         self.add_action(
-            icon_path,
-            text=self.tr(u'PostGIS Raster Import'),
+            resource_prefix + '/NewRasterLayer.svg',
+            text=self.tr('Import raster into database'),
             callback=self.raster_import,
             parent=self.iface.mainWindow())
-
         self.add_action(
             QgsApplication.getThemeIcon('/mIconPyramid.svg'),
-            text=self.tr('Create overviews'),
+            text=self.tr('Create overviews for existing layer'),
             callback=self.create_overviews,
             parent=self.iface.mainWindow())
-        
+        self.iface.databaseMenu().addMenu(self.menu)
+
         self.first_start = True
         self.dlg_create_overviews = None
 

@@ -1,5 +1,6 @@
 <RCC>
     <qresource prefix="/plugins/pgraster_import" >
-        <file>icon.png</file>
+        <file>icons/icon.png</file>
+        <file>icons/NewRasterLayer.svg</file>
     </qresource>
 </RCC>
