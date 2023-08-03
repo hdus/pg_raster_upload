@@ -69,7 +69,7 @@ class PGRasterImport:
 
         # Declare instance attributes
         self.actions = []
-        self.menu = QMenu(self.tr(u'&PostGIS Raster Import'))
+        self.menu = None
 
         # Check if plugin was started the first time in current QGIS session
         # Must be set in initGui() to survive plugin reloads
@@ -167,7 +167,7 @@ class PGRasterImport:
         """Create the menu entries and toolbar icons inside the QGIS GUI."""
 
         resource_prefix = ':/plugins/pgraster_import/icons'        
-        self.menu = QMenu(self.tr('PostGIS Raster Import'))
+        self.menu = QMenu(self.tr('&PostGIS Raster Import'))
         self.menu.setIcon(QIcon(resource_prefix + '/icon.png'))
         self.add_action(
             resource_prefix + '/NewRasterLayer.svg',
@@ -187,11 +187,11 @@ class PGRasterImport:
     def unload(self):
         """Removes the plugin menu item and icon from QGIS GUI."""
         for action in self.actions:
-            self.iface.removePluginDatabaseMenu(
-                self.tr(u'&PostGIS Raster Import'),
-                action)
+            if self.menu:
+                self.menu.removeAction(action)
             self.iface.removeDatabaseToolBarIcon(action)
-
+        self.iface.databaseMenu().removeAction(self.menu.menuAction())
+        self.menu = None
 
     def raster_import(self):
         """Run method that performs all the real work"""

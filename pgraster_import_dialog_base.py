@@ -58,7 +58,7 @@ class PGRasterImportDialog(QDialog, FORM_CLASS):
         result = QMessageBox.critical(
             None,
             self.tr("Error"),
-            self.tr("%s" % e),
+            "%s" % e,
             QMessageBox.StandardButtons(
                 QMessageBox.Ok),
             QMessageBox.Ok)

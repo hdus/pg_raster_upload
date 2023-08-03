@@ -21,9 +21,6 @@
      </property>
     </widget>
    </item>
-   <item row="0" column="1" colspan="2">
-    <widget class="QgsMapLayerComboBox" name="cmb_map_layer"/>
-   </item>
    <item row="1" column="1" colspan="3">
     <widget class="QComboBox" name="cmb_db_connections"/>
    </item>
@@ -58,7 +55,7 @@
    <item row="3" column="0">
     <widget class="QLabel" name="label_3">
      <property name="text">
-      <string>Schema</string>
+      <string>Schema:</string>
      </property>
     </widget>
    </item>
@@ -153,6 +150,9 @@
       <string>Add Raster to canvas</string>
      </property>
     </widget>
+   </item>
+   <item row="0" column="1" colspan="3">
+    <widget class="QgsMapLayerComboBox" name="cmb_map_layer"/>
    </item>
   </layout>
  </widget>

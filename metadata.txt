@@ -20,6 +20,9 @@ about=The plugin is designed to easily import file-based rasters into a PostGIS 
   - Jorge Arevalo <jorge.arevalo@deimos-space.com> Copyright (C) 2009-2010 
   - Horst Duester <horst.duester@sourcepole.ch> Copyright (C) 2016
   
+  Improvements and overview creation dialog by:
+  - Florian Jenn <florian.jenn@gci-kw.de> Copyright (C) 2022–2023
+  
 tracker=https://github.com/hdus/pg_raster_upload/issues
 repository=https://github.com/hdus/pg_raster_upload
 # End of mandatory metadata
@@ -33,6 +36,7 @@ changelog=
   - Do not import rasters without valid CRS
   - Fix “definition of service "None" not found” error when selecting DB
   - Create overviews for existing PostGIS rasters
+  - Slight cleanup of translations and UI
   3.2.0
   - Do not ask for credentials if not necessary
   3.1.0

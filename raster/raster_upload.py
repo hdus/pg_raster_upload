@@ -130,6 +130,7 @@ class RasterUpload(QObject):
         self.progress_bar.reset()
         max_level = max(levels)
         self.progress_bar.setMaximum(max_level)
+        self.progress_bar.setValue(1)  # Indicate something is already happening (level 2 takes the longest time)
         for level in levels:            
             sql = 'drop table if exists "{schema}"."o_{level}_{table}"'.format(
                                     schema=schema, table=table, level=str(level))
@@ -137,8 +138,8 @@ class RasterUpload(QObject):
             self.cursor.execute(sql)
             self.conn.commit()
             sql = "select st_createoverview_qgiscloud('{schema}.{table}', '{column}', {level})".format(
-                                      schema=schema, table=table, column=column, level=str(level))
-            self.progress_label.setText(self.tr("Creating overview-level {level} for table '{table}'...").format(level=level,  table=table))
+                schema=schema, table=table, column=column, level=str(level))
+            self.progress_label.setText(self.tr("Creating overview level {level} for table '{table}'...").format(level=level,  table=table))
             QApplication.processEvents()
             self.cursor.execute(sql)
             self.conn.commit()
@@ -163,7 +164,7 @@ class RasterUpload(QObject):
         QMessageBox.critical(
             None,
             self.tr("Error"),
-            self.tr("%s" % e),
+            "%s" % e,
             QMessageBox.StandardButtons(
                 QMessageBox.Ok),
             QMessageBox.Ok)
