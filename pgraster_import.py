@@ -21,7 +21,15 @@
  *                                                                         *
  ***************************************************************************/
 """
-from qgis.PyQt.QtCore import QSettings, QTranslator, QCoreApplication
+
+import os.path
+
+from qgis.core import QgsApplication
+from qgis.PyQt.QtCore import (
+    QSettings,
+    QTranslator,
+    QCoreApplication
+)
 from qgis.PyQt.QtGui import QIcon
 from qgis.PyQt.QtWidgets import QAction
 
@@ -29,7 +37,7 @@ from qgis.PyQt.QtWidgets import QAction
 from .resources_rc import *
 # Import the code for the dialog
 from .pgraster_import_dialog_base import PGRasterImportDialog
-import os.path
+from .pgraster_create_overviews_dialog import PGRasterCreateOverviewsDialog
 
 
 class PGRasterImport:
@@ -164,12 +172,17 @@ class PGRasterImport:
         self.add_action(
             icon_path,
             text=self.tr(u'PostGIS Raster Import'),
-            callback=self.run,
+            callback=self.raster_import,
             parent=self.iface.mainWindow())
 
-        # will be set False in run()
+        self.add_action(
+            QgsApplication.getThemeIcon('/mIconPyramid.svg'),
+            text=self.tr('Create overviews'),
+            callback=self.create_overviews,
+            parent=self.iface.mainWindow())
+        
         self.first_start = True
-
+        self.dlg_create_overviews = None
 
     def unload(self):
         """Removes the plugin menu item and icon from QGIS GUI."""
@@ -180,7 +193,7 @@ class PGRasterImport:
             self.iface.removeDatabaseToolBarIcon(action)
 
 
-    def run(self):
+    def raster_import(self):
         """Run method that performs all the real work"""
 
         # Create the dialog with elements (after translation) and keep reference
@@ -198,3 +211,8 @@ class PGRasterImport:
             # Do something useful here - delete the line containing pass and
             # substitute with your code.
             pass
+
+    def create_overviews(self):
+        if not self.dlg_create_overviews:
+            self.dlg_create_overviews = PGRasterCreateOverviewsDialog(self.iface)
+        self.dlg_create_overviews.open_dialog()

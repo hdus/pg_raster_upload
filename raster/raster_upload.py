@@ -115,7 +115,7 @@ class RasterUpload(QObject):
 
         # create raster overviews
         if overviews:
-            res = self.create_overviews(self.opts)
+            res = self.create_overviews(self.opts['schema'], self.opts['table'], self.opts['column'])
             if not res:
                 return False
 
@@ -126,35 +126,34 @@ class RasterUpload(QObject):
         self.progress_label.setText(self.tr("Upload successful finished"))
         return True
 
-    def create_overviews(self, opts, levels=[2, 4, 8, 16, 32,  64, 128, 256]):
+    def create_overviews(self, schema, table, column, levels=[2, 4, 8, 16, 32, 64, 128, 256]):
+        self.progress_bar.reset()
+        max_level = max(levels)
+        self.progress_bar.setMaximum(max_level)
         for level in levels:            
             sql = 'drop table if exists "{schema}"."o_{level}_{table}"'.format(
-                                    schema = opts['schema'],  
-                                    level = level,  
-                                    table = opts['table'])                                    
+                                    schema=schema, table=table, level=str(level))
+            #FIXME: look up overview table name in public.raster_overviews
             self.cursor.execute(sql)
             self.conn.commit()
             sql = "select st_createoverview_qgiscloud('{schema}.{table}', '{column}', {level})".format(
-                                      schema = opts['schema'].replace('"', ''),  
-                                      table = opts['table'].replace('"', ''),   
-                                      column = opts['column'],  
-                                      level = level)                                      
-            self.progress_label.setText(self.tr("Creating overview-level {level} for table '{table}'...").format(level=level,  table=opts['schema_table'].replace('"',  '')))
+                                      schema=schema, table=table, column=column, level=str(level))
+            self.progress_label.setText(self.tr("Creating overview-level {level} for table '{table}'...").format(level=level,  table=table))
             QApplication.processEvents()
             self.cursor.execute(sql)
             self.conn.commit()
             
             index_table = '"{schema}"."o_{level}_{table}"'.format(
-                schema=opts['schema'],
-                level=str(level),
-                table=opts['table'])
+                schema=schema, table=table, level=str(level))
             try:
-                self.cursor.execute(self.make_sql_create_gist(index_table, opts['column']))
+                self.cursor.execute(self.make_sql_create_gist(index_table, column))
                 self.conn.commit()
             except:
                 self.__error_message(str(sys.exc_info()[1])) 
                 return False
-            return True
+            self.progress_bar.setValue(int(max_level - max_level/level + 1))
+        self.progress_label.setText(self.tr("Raster overviews successfully created"))
+        return True
 
     def psycopg2_version(self):
         version_array = psycopg2.__version__.split(' ')[0].split('.')
@@ -729,7 +728,7 @@ class RasterUpload(QObject):
         self.conn.commit()
         
         self.progress_label.setText(self.tr("Calculating raster params for {sum_tiles} tiles ...").format(
-            sum_tiles= sum_tiles))        
+            sum_tiles=sum_tiles))
         QApplication.processEvents()        
 
         self.cursor.execute(self.make_sql_addrastercolumn(options))
