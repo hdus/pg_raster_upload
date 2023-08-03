@@ -116,11 +116,11 @@ class PGRasterImportDialog(QDialog, FORM_CLASS):
         settings = QSettings()
         mySettings = '/PostgreSQL/connections/' + selectedServer
         DBNAME = settings.value(mySettings + '/database')
-        DBUSER = str(settings.value(mySettings + '/username'))
+        DBUSER = str(settings.value(mySettings + '/username', ''))
         DBHOST = settings.value(mySettings + '/host')
         DBPORT = settings.value(mySettings + '/port')
-        DBPASSWD = str(settings.value(mySettings + '/password'))
-        SERVICE_NAME = str(settings.value(mySettings + '/service'))
+        DBPASSWD = str(settings.value(mySettings + '/password', ''))
+        SERVICE_NAME = str(settings.value(mySettings + '/service', ''))
         
         if SERVICE_NAME and SERVICE_NAME not in ('', 'NULL', 'None'):
             connection_info = "service='{0}'".format(SERVICE_NAME)
@@ -138,7 +138,7 @@ class PGRasterImportDialog(QDialog, FORM_CLASS):
                             conn.close()
                         else:
                             success = False
-                    except:
+                    except psycopg2.Error:
                         (success, user, password) = QgsCredentials.instance().get(connection_info, None, None)
                 else:
                     (success, user, password) = QgsCredentials.instance().get(connection_info, str(DBUSER), None)
@@ -154,8 +154,10 @@ class PGRasterImportDialog(QDialog, FORM_CLASS):
         
         try:
             conn = psycopg2.connect(connection_info)
-        except:
-            QMessageBox.critical(None,  self.tr('Error'),  str(sys.exc_info()[1]))
+        except psycopg2.Error:
+            QMessageBox.critical(None, self.tr('Error'),
+                                 self.tr('Cannot connect to {0}: Exception info: {1}').format(
+                                     connection_info, sys.exc_info()[1]))
             return None, None
         
         return conn, DBPASSWD
