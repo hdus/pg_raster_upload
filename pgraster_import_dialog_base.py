@@ -269,8 +269,8 @@ class PGRasterImportDialog(QDialog, FORM_CLASS):
                     }
             
             with OverrideCursor(Qt.WaitCursor):
-                success = RasterUpload(conn,  raster_to_upload,  self.chk_overviews.isChecked(),  self.progress_label,  self.progress_bar)
-                
+                uploader = RasterUpload(conn, self.progress_label, self.progress_bar)
+                success = uploader.import_raster(raster_to_upload, self.chk_overviews.isChecked())
             conn.close()
             return success
         else:

@@ -53,7 +53,7 @@ VERBOSE = False
 SUMMARY = []
 
 class RasterUpload(QObject):
-    def __init__(self,  conn,  raster,  overviews,  progress_label,  progress_bar):
+    def __init__(self, conn, progress_label, progress_bar):
         QObject.__init__(self)
         self.conn = conn
         self.cursor = conn.cursor()
@@ -61,70 +61,70 @@ class RasterUpload(QObject):
         self.progress_bar = progress_bar
         self.progress_bar.setValue(0)
         self.messages = ""
-        self.overviews = overviews
 
-        opts = {}
-        opts['version'] = g_rt_version
-        opts['endian'] = NDR
-        opts['column'] = 'rast'
-        opts['create_table'] = 1
-        opts['drop_table'] = 1
-        opts['overview_level'] = 1
-        opts['block_size'] = 'auto'
-        opts['band'] = None
-        opts['register'] = None
+        self.opts = {
+            'version': g_rt_version,
+            'endian': NDR,
+            'column': 'rast',
+            'create_table': 1,
+            'drop_table': 1,
+            'overview_level': 1,
+            'block_size': 'auto',
+            'band': None,
+            'register': None
+        }
         
         # Create PostGIS Raster Tool Functions          
         raster_tools_file = "%s/raster_tools.sql" % os.path.dirname(__file__)
         with open(raster_tools_file) as f:
             sql = f.read().encode('ascii',errors='ignore')
             f.close()
-        
         try:
             self.cursor.execute(sql)
             self.conn.commit()              
         except psycopg2.errors.UndefinedObject:
             return None
-            
-         
+
+    def import_raster(self, raster, overviews):
         i = 0
          
         # Burn all specified input raster files into single WKTRaster table
         gt = None
         layer_info = raster
-        opts['srid'] = layer_info['layer'].dataProvider().crs().postgisSrid()
+        self.opts['srid'] = layer_info['layer'].dataProvider().crs().postgisSrid()
         infile = layer_info['data_source']
         
-        opts['schema_table'] = "\"%s\".\"%s\"" % (layer_info['schema_name'],  layer_info['table_name'])
-        opts['table'] = layer_info['table_name']
-        opts['schema'] =  layer_info['schema_name']
+        self.opts['schema_table'] = "\"%s\".\"%s\"" % (layer_info['schema_name'],  layer_info['table_name'])
+        self.opts['table'] = layer_info['table_name']
+        self.opts['schema'] =  layer_info['schema_name']
             
-        self.progress_label.setText(self.tr("Creating table '{table}'...").format(table=opts['schema_table'].replace('"',  '')))
+        self.progress_label.setText(self.tr("Creating table '{table}'...").format(table=self.opts['schema_table'].replace('"',  '')))
         QApplication.processEvents()
         
-        self.cursor.execute(self.make_sql_drop_raster_table(opts['schema_table']))
+        self.cursor.execute(self.make_sql_drop_raster_table(self.opts['schema_table']))
         self.conn.commit()
         
-        self.cursor.execute(self.make_sql_create_table(opts,  opts['schema_table']))
+        self.cursor.execute(self.make_sql_create_table(self.opts, self.opts['schema_table']))
         self.conn.commit()
     
-        gt = self.wkblify_raster(opts,  infile.replace( '\\', '/') , i, gt)
+        gt = self.wkblify_raster(self.opts,  infile.replace( '\\', '/') , i, gt)
         i += 1
         
-        self.cursor.execute(self.make_sql_create_gist(opts['schema_table'],  opts['column']))
+        self.cursor.execute(self.make_sql_create_gist(self.opts['schema_table'], self.opts['column']))
         self.conn.commit()            
 
         # create raster overviews
         if overviews:
-            res = self.create_overviews(opts)
+            res = self.create_overviews(self.opts)
             if not res:
                 return False
 
-        self.progress_label.setText(self.tr("Registering raster columns of table '%s'..." % (opts['schema_table'].replace('"',  ''))))
+        self.progress_label.setText(self.tr("Registering raster columns of table '%s'..." % (self.opts['schema_table'].replace('"',  ''))))
         QApplication.processEvents()
-        self.cursor.execute(self.make_sql_addrastercolumn(opts))
+        self.cursor.execute(self.make_sql_addrastercolumn(self.opts))
         self.conn.commit()
         self.progress_label.setText(self.tr("Upload successful finished"))
+        return True
 
     def create_overviews(self, opts, levels=[2, 4, 8, 16, 32,  64, 128, 256]):
         for level in levels:            
