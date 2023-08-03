@@ -114,44 +114,48 @@ class RasterUpload(QObject):
         self.cursor.execute(self.make_sql_create_gist(opts['schema_table'],  opts['column']))
         self.conn.commit()            
 
-   # create raster overviews
+        # create raster overviews
         if overviews:
-            for level in [2, 4, 8, 16, 32,  64, 128, 256]:
-                
-                sql = 'drop table if exists "{schema}"."o_{level}_{table}"'.format(
-                                        schema = opts['schema'],  
-                                        level = level,  
-                                        table = opts['table'], )
-                                        
-                self.cursor.execute(sql)
-                self.conn.commit()
-                sql = "select st_createoverview_qgiscloud('{schema}.{table}', '{column}', {level})".format(
-                                          schema = opts['schema'].replace('"', ''),  
-                                          table = opts['table'].replace('"', ''),   
-                                          column = opts['column'],  
-                                          level = level, )
-                                          
-                self.progress_label.setText(self.tr("Creating overview-level {level} for table '{table}'...").format(level=level,  table=opts['schema_table'].replace('"',  '')))
-                QApplication.processEvents()
-                self.cursor.execute(sql)
-                self.conn.commit()
-                
-                index_table = '"{schema}"."o_{level}_{table}"'.format(schema=opts['schema'],  level=str(level),  table=opts['table'])
-                
-                try:
-                    self.cursor.execute(self.make_sql_create_gist(index_table,  opts['column']))
-                    self.conn.commit()
-                except:
-                    self.__error_message(str(sys.exc_info()[1])) 
-                    return False            
-                
+            res = self.create_overviews(opts)
+            if not res:
+                return False
 
         self.progress_label.setText(self.tr("Registering raster columns of table '%s'..." % (opts['schema_table'].replace('"',  ''))))
         QApplication.processEvents()
         self.cursor.execute(self.make_sql_addrastercolumn(opts))
         self.conn.commit()
         self.progress_label.setText(self.tr("Upload successful finished"))
+
+    def create_overviews(self, opts, levels=[2, 4, 8, 16, 32,  64, 128, 256]):
+        for level in levels:            
+            sql = 'drop table if exists "{schema}"."o_{level}_{table}"'.format(
+                                    schema = opts['schema'],  
+                                    level = level,  
+                                    table = opts['table'])                                    
+            self.cursor.execute(sql)
+            self.conn.commit()
+            sql = "select st_createoverview_qgiscloud('{schema}.{table}', '{column}', {level})".format(
+                                      schema = opts['schema'].replace('"', ''),  
+                                      table = opts['table'].replace('"', ''),   
+                                      column = opts['column'],  
+                                      level = level)                                      
+            self.progress_label.setText(self.tr("Creating overview-level {level} for table '{table}'...").format(level=level,  table=opts['schema_table'].replace('"',  '')))
+            QApplication.processEvents()
+            self.cursor.execute(sql)
+            self.conn.commit()
             
+            index_table = '"{schema}"."o_{level}_{table}"'.format(
+                schema=opts['schema'],
+                level=str(level),
+                table=opts['table'])
+            try:
+                self.cursor.execute(self.make_sql_create_gist(index_table, opts['column']))
+                self.conn.commit()
+            except:
+                self.__error_message(str(sys.exc_info()[1])) 
+                return False
+            return True
+
     def psycopg2_version(self):
         version_array = psycopg2.__version__.split(' ')[0].split('.')
         return int(version_array[0])*10000+int(version_array[1])*100+int(version_array[2])
