@@ -6,7 +6,7 @@
 name=PostGIS Raster Import
 qgisMinimumVersion=3.0
 description=Import Raster to PgRaster
-version=3.2.1
+version=3.1.0
 author=Dr. Horst Duester
 email=horst.duester@sourcepole.ch
 
@@ -32,14 +32,7 @@ repository=https://github.com/hdus/pg_raster_upload
 hasProcessingProvider=no
 # Uncomment the following line and add your changelog:
 changelog=
-  3.2.1
-  - Do not import rasters without valid CRS
-  - Fix “definition of service "None" not found” error when selecting DB
-  - Create overviews for existing PostGIS rasters
-  - Slight cleanup of translations and UI
-  3.2.0
-  - Do not ask for credentials if not necessary
-  3.1.0
+  - 3.1.0
   - Fix for psycopg2 > 20900
   3.0.0
   - set to revision 3.0.0 due to QGIS 3
