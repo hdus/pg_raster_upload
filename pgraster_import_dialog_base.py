@@ -254,7 +254,7 @@ class PGRasterImportDialog(QDialog, FORM_CLASS):
         
         
         layer = self.cmb_map_layer.currentLayer()
-        if not layer.dataProvider().crs().isValid():
+        if not layer.crs().isValid():
             QMessageBox.warning(self, self.tr('Warning'),
                                 self.tr('Raster has no valid CRS'))
             return False

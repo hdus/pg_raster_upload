@@ -30,9 +30,11 @@ repository=https://github.com/hdus/pg_raster_upload
 # Recommended items:
 
 hasProcessingProvider=no
+
 # Uncomment the following line and add your changelog:
 changelog=
   3.2.1
+  - Use layer CRS instead of file’s CRS (i.e. user can assign correct CRS in QGIS)
   - Do not import rasters without valid CRS
   - Fix “definition of service "None" not found” error when selecting DB
   - Create overviews for existing PostGIS rasters
