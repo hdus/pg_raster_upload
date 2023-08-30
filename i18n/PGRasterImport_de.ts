@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!DOCTYPE TS><TS version="2.0" language="de" sourcelanguage="">
+<!DOCTYPE TS>
+<TS version="2.1" language="de">
 <context>
     <name>About</name>
     <message>
@@ -150,79 +151,84 @@
 <context>
     <name>PGRasterImportDialog</name>
     <message>
-        <location filename="../pgraster_import_dialog_base.py" line="238"/>
+        <location filename="../pgraster_import_dialog_base.py" line="244"/>
         <source>Error</source>
         <translation>Fehler</translation>
     </message>
     <message>
-        <location filename="../pgraster_import_dialog_base.py" line="216"/>
+        <location filename="../pgraster_import_dialog_base.py" line="222"/>
         <source>Table exists</source>
         <translation>Die Tabelle existiert</translation>
     </message>
     <message>
-        <location filename="../pgraster_import_dialog_base.py" line="216"/>
+        <location filename="../pgraster_import_dialog_base.py" line="222"/>
         <source>The selected table already exists in the database. Do you want to overwrite the table?</source>
         <translation>Die ausgewählte Tabelle existiert bereits in der Datenbank. Möchten Sie die Tabelle überschreiben?</translation>
     </message>
     <message>
-        <location filename="../pgraster_import_dialog_base.py" line="147"/>
+        <location filename="../pgraster_import_dialog_base.py" line="153"/>
         <source>Username or password incorrect!</source>
         <translation>Falscher Benutzername oder falsches Passwort!</translation>
     </message>
     <message>
-        <location filename="../pgraster_import_dialog_base.py" line="203"/>
+        <location filename="../pgraster_import_dialog_base.py" line="209"/>
         <source>PostGIS Raster Extension not installed in destination DB</source>
         <translation>Erweiterung „PostGIS Raster“ ist nicht in der Zieldatenbank installiert</translation>
     </message>
     <message>
-        <location filename="../pgraster_import_dialog_base.py" line="236"/>
+        <location filename="../pgraster_import_dialog_base.py" line="242"/>
         <source>Success</source>
         <translation>Erfolg</translation>
     </message>
     <message>
-        <location filename="../pgraster_import_dialog_base.py" line="236"/>
+        <location filename="../pgraster_import_dialog_base.py" line="242"/>
         <source>Raster successful uploaded to database</source>
         <translation>Raster wurde erfolgreich in die Datenbank geladen</translation>
     </message>
     <message>
-        <location filename="../pgraster_import_dialog_base.py" line="238"/>
+        <location filename="../pgraster_import_dialog_base.py" line="244"/>
         <source>Upload failed</source>
         <translation>Hochladen gescheitert</translation>
     </message>
     <message>
-        <location filename="../pgraster_import_dialog_base.py" line="345"/>
+        <location filename="../pgraster_import_dialog_base.py" line="362"/>
         <source>PostGIS Raster Import</source>
         <translation>PostGIS Raster-Import</translation>
     </message>
     <message>
-        <location filename="../pgraster_import_dialog_base.py" line="232"/>
+        <location filename="../pgraster_import_dialog_base.py" line="238"/>
         <source>Upload cancelled</source>
         <translation>Upload abgebrochen</translation>
     </message>
     <message>
-        <location filename="../pgraster_import_dialog_base.py" line="277"/>
+        <location filename="../pgraster_import_dialog_base.py" line="283"/>
         <source>Warning</source>
         <translation>Warnung</translation>
     </message>
     <message>
-        <location filename="../pgraster_import_dialog_base.py" line="277"/>
+        <location filename="../pgraster_import_dialog_base.py" line="283"/>
         <source>Layers of type {0} are not supported!</source>
         <translation>Layer des Typs {0} werden nicht unterstützt!</translation>
     </message>
     <message>
-        <location filename="../pgraster_import_dialog_base.py" line="345"/>
+        <location filename="../pgraster_import_dialog_base.py" line="362"/>
         <source>Could not load raster layer: database connection not available</source>
         <translation>Kann den Rasterlayer nicht laden: die Datenbankverbindung ist nicht verfügbar</translation>
     </message>
     <message>
-        <location filename="../pgraster_import_dialog_base.py" line="158"/>
+        <location filename="../pgraster_import_dialog_base.py" line="164"/>
         <source>Cannot connect to {0}: Exception info: {1}</source>
         <translation>Keine Verbindung mit {0} möglich: Exception-Info: {1}</translation>
     </message>
     <message>
-        <location filename="../pgraster_import_dialog_base.py" line="258"/>
+        <location filename="../pgraster_import_dialog_base.py" line="264"/>
         <source>Raster has no valid CRS</source>
         <translation>Raster hat kein gültiges KBS</translation>
+    </message>
+    <message>
+        <location filename="../pgraster_import_dialog_base.py" line="307"/>
+        <source>Layer name is too long for PostgreSQL database and will be truncated</source>
+        <translation>Layername ist zu lang für PostgreSQL-Datenbank und wird gekürzt</translation>
     </message>
 </context>
 <context>

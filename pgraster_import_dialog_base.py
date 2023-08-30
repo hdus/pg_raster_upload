@@ -33,6 +33,11 @@ from qgis.PyQt.QtWidgets import QDialog,  QMessageBox
 from .raster.raster_upload import RasterUpload
 from .about.about import About
 
+
+PG_MAX_IDENTIFIER_LEN = 63  # NAMEDATALEN - 1; standard value for PostgreSQL since at least version 8
+LONGEST_SUFFIX_LEN = len('_rast_gist_idx')  # assuming standard name for raster column
+
+
 # This loads your .ui file so that PyQt can populate your plugin with the elements from Qt Designer
 FORM_CLASS, _ = uic.loadUiType(os.path.join(
     os.path.dirname(__file__), 'pgraster_import_dialog_base.ui'))
@@ -49,6 +54,7 @@ class PGRasterImportDialog(QDialog, FORM_CLASS):
         # #widgets-and-dialogs-with-auto-connect
         self.setupUi(self)
         self.iface = iface
+        self.lne_table_name.setMaxLength(PG_MAX_IDENTIFIER_LEN - LONGEST_SUFFIX_LEN)
         self.getDbSettings()
         self.cmb_map_layer.setCurrentIndex(-1) 
         self.cmb_map_layer.setFilters(QgsMapLayerProxyModel.RasterLayer)        
@@ -297,7 +303,13 @@ class PGRasterImportDialog(QDialog, FORM_CLASS):
         @param p0 DESCRIPTION
         @type str
         """
-        self.lne_table_name.setText(self.launder_table_name(p0))
+        if len(p0) > PG_MAX_IDENTIFIER_LEN - LONGEST_SUFFIX_LEN:
+            self.message(self.tr('PostGIS Raster Import'),
+                         self.tr('Layer name is too long for PostgreSQL database and will be truncated'),
+                         Qgis.Warning)
+        self.lne_table_name.setText(
+            self.launder_table_name(p0,
+                                    maxlen=(PG_MAX_IDENTIFIER_LEN - LONGEST_SUFFIX_LEN)))
         self.enable_buttons()
         
     def raster_extension_exists(self,  conn):
@@ -314,10 +326,13 @@ class PGRasterImportDialog(QDialog, FORM_CLASS):
         return False
             
 #    @staticmethod
-    def launder_table_name(self,  name):
+    def launder_table_name(self, name: str, maxlen: int = None):
+        """Change table name to lower case, replace special characters, and truncate to maximum length """
+        input_string = name
         # OGRPGDataSource::LaunderName
         # return re.sub(r"[#'-]", '_', unicode(name).lower())
-        input_string = str(name).lower().encode('ascii', 'replace')
+        input_string = str(input_string).lower().encode('ascii', 'replace')
+        input_string = input_string.replace(b"?", b"_")  # replacement character from encode()
         input_string = input_string.replace(b" ", b"_")
         input_string = input_string.replace(b".", b"_")
         input_string = input_string.replace(b"-", b"_")
@@ -326,14 +341,16 @@ class PGRasterImportDialog(QDialog, FORM_CLASS):
         input_string = input_string.replace(b")", b"_")
 
         # check if table_name starts with number
-
-        if re.search(r"^\d", input_string.decode('utf-8')):
-            input_string = '_'+input_string.decode('utf-8')
+        if re.match(r"\d", input_string.decode('utf-8')):  # TODO: shouldn’t this go into the try block below? -- fj
+            input_string = '_' + input_string.decode('utf-8')
 
         try:
-            return input_string.decode('utf-8')
+            decoded = input_string.decode('utf-8')
         except:
-            return input_string        
+            decoded = input_string
+        if maxlen:
+            return decoded[:maxlen]
+        return decoded
             
     def load_raster_layer(self):
                 
