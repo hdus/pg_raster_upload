@@ -332,6 +332,7 @@ class PGRasterImportDialog(QDialog, FORM_CLASS):
         # OGRPGDataSource::LaunderName
         # return re.sub(r"[#'-]", '_', unicode(name).lower())
         input_string = str(input_string).lower().encode('ascii', 'replace')
+        input_string = input_string.replace(b"?", b"_")  # replacement character from encode()
         input_string = input_string.replace(b" ", b"_")
         input_string = input_string.replace(b".", b"_")
         input_string = input_string.replace(b"-", b"_")
@@ -340,9 +341,8 @@ class PGRasterImportDialog(QDialog, FORM_CLASS):
         input_string = input_string.replace(b")", b"_")
 
         # check if table_name starts with number
-
-        if re.search(r"^\d", input_string.decode('utf-8')):
-            input_string = '_'+input_string.decode('utf-8')
+        if re.match(r"\d", input_string.decode('utf-8')):  # TODO: shouldn’t this go into the try block below? -- fj
+            input_string = '_' + input_string.decode('utf-8')
 
         try:
             decoded = input_string.decode('utf-8')
