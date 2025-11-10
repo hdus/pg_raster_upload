@@ -4,9 +4,10 @@
 
 [general]
 name=PostGIS Raster Import
-qgisMinimumVersion=3.0
+qgisMinimumVersion=3.99
 description=Import Raster to PgRaster
-version=3.2.1
+supportsQt6=True
+version=4.0.0
 author=Dr. Horst Duester
 email=horst.duester@sourcepole.ch
 
@@ -33,6 +34,8 @@ hasProcessingProvider=no
 
 # Uncomment the following line and add your changelog:
 changelog=
+  4.0.0
+  - Initial release of QGIS 4/ Qt 6 compatibility
   3.2.1
   - Use layer CRS instead of file’s CRS (i.e. user can assign correct CRS in QGIS)
   - Do not import rasters without valid CRS

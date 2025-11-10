@@ -56,8 +56,8 @@ class PGRasterCreateOverviewsDialog(QDialog, FORM_CLASS):
             self.tr("Error"),
             "%s" % e,
             QMessageBox.StandardButtons(
-                QMessageBox.Ok),
-            QMessageBox.Ok)
+                QMessageBox.StandardButton.Ok),
+            QMessageBox.StandardButton.Ok)
         return None        
 
     def open_dialog(self):
@@ -68,7 +68,7 @@ class PGRasterCreateOverviewsDialog(QDialog, FORM_CLASS):
         self.progress_bar.reset()
         self.progress_label.clear()
         self.cmb_map_layer.setCurrentIndex(-1) 
-        self.cmb_map_layer.setFilters(QgsMapLayerProxyModel.RasterLayer)        
+        self.cmb_map_layer.setFilters(QgsMapLayerProxyModel.Filter.RasterLayer)        
         self.set_excluded_layers()
         self.enable_buttons(False)
         self.show()
@@ -150,7 +150,7 @@ class PGRasterCreateOverviewsDialog(QDialog, FORM_CLASS):
 
         if not (schema in self.db_schemas(self.conn) and self.table_exists(self.conn, schema, table)):
             return #TODO error message        
-        with OverrideCursor(Qt.WaitCursor):
+        with OverrideCursor(Qt.CursorShape.WaitCursor):
             uploader = RasterUpload(self.conn, self.progress_label, self.progress_bar)
             result = uploader.create_overviews(schema, table, geom_column)  #TODO handle result
 
@@ -163,7 +163,7 @@ class PGRasterCreateOverviewsDialog(QDialog, FORM_CLASS):
         """
         Slot documentation goes here.
         """
-        About().exec_()
+        About().exec()
     
     @pyqtSlot(str)
     def on_cmb_map_layer_currentIndexChanged(self):

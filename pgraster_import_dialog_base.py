@@ -57,7 +57,7 @@ class PGRasterImportDialog(QDialog, FORM_CLASS):
         self.lne_table_name.setMaxLength(PG_MAX_IDENTIFIER_LEN - LONGEST_SUFFIX_LEN)
         self.getDbSettings()
         self.cmb_map_layer.setCurrentIndex(-1) 
-        self.cmb_map_layer.setFilters(QgsMapLayerProxyModel.RasterLayer)        
+        self.cmb_map_layer.setFilters(QgsMapLayerProxyModel.Filter.RasterLayer)        
         self.excluded_layers()
         
     def __error_message(self, e):
@@ -66,8 +66,8 @@ class PGRasterImportDialog(QDialog, FORM_CLASS):
             self.tr("Error"),
             "%s" % e,
             QMessageBox.StandardButtons(
-                QMessageBox.Ok),
-            QMessageBox.Ok)
+                QMessageBox.StandardButton.Ok),
+            QMessageBox.StandardButton.Ok)
         
         return None        
         
@@ -224,24 +224,24 @@ class PGRasterImportDialog(QDialog, FORM_CLASS):
                 self.tr("Table exists"),
                 self.tr("""The selected table already exists in the database. Do you want to overwrite the table?"""),
                 QMessageBox.StandardButtons(
-                    QMessageBox.No |
-                    QMessageBox.Yes),
-                QMessageBox.No)
+                    QMessageBox.StandardButton.No |
+                    QMessageBox.StandardButton.Yes),
+                QMessageBox.StandardButton.No)
             
-            if result == QMessageBox.Yes:
+            if result == QMessageBox.StandardButton.Yes:
                 if self.raster_upload(conn):
-                    self.message(self.tr('Success'),  self.tr('Raster successful uploaded to database'),  Qgis.Success)
+                    self.message(self.tr('Success'),  self.tr('Raster successful uploaded to database'),  Qgis.MessageLevel.Success)
                 else:
-                    self.message(self.tr('Error'),  self.tr('Upload failed'),  Qgis.Critical)
+                    self.message(self.tr('Error'),  self.tr('Upload failed'),  Qgis.MessageLevel.Critical)
                     return  # Do not add layer if upload failed
             else:
-                self.message(self.tr('PostGIS Raster Import'), self.tr('Upload cancelled'),  Qgis.Warning)
+                self.message(self.tr('PostGIS Raster Import'), self.tr('Upload cancelled'),  Qgis.MessageLevel.Warning)
                 return  # Do not add layer if upload was cancelled by user
         else:
             if self.raster_upload(conn):
-                self.message(self.tr('Success'),  self.tr('Raster successful uploaded to database'),  Qgis.Success)
+                self.message(self.tr('Success'),  self.tr('Raster successful uploaded to database'),  Qgis.MessageLevel.Success)
             else:
-                self.message(self.tr('Error'),  self.tr('Upload failed'),  Qgis.Critical)
+                self.message(self.tr('Error'),  self.tr('Upload failed'),  Qgis.MessageLevel.Critical)
                 return  # Do not add layer if upload failed
         self.progress_bar.setValue(0)
         
@@ -274,7 +274,7 @@ class PGRasterImportDialog(QDialog, FORM_CLASS):
                         'geom_column': 'rast'
                     }
             
-            with OverrideCursor(Qt.WaitCursor):
+            with OverrideCursor(Qt.CursorShape.WaitCursor):
                 uploader = RasterUpload(conn, self.progress_label, self.progress_bar)
                 success = uploader.import_raster(raster_to_upload, self.chk_overviews.isChecked())
             conn.close()
@@ -285,15 +285,19 @@ class PGRasterImportDialog(QDialog, FORM_CLASS):
                 self.tr("Warning"),
                 self.tr("""Layers of type {0} are not supported!""".format(layer.dataProvider().name())),
                 QMessageBox.StandardButtons(
-                    QMessageBox.Ok))
+                    QMessageBox.StandardButton.Ok))
             return False
     
+    @pyqtSlot()
+    def on_btn_load_raster_clicked(self):
+        pass
+        
     @pyqtSlot()
     def on_btn_about_clicked(self):
         """
         Slot documentation goes here.
         """
-        About().exec_()
+        About().exec()
     
     @pyqtSlot(str)
     def on_cmb_map_layer_currentIndexChanged(self, p0):
@@ -306,7 +310,7 @@ class PGRasterImportDialog(QDialog, FORM_CLASS):
         if len(p0) > PG_MAX_IDENTIFIER_LEN - LONGEST_SUFFIX_LEN:
             self.message(self.tr('PostGIS Raster Import'),
                          self.tr('Layer name is too long for PostgreSQL database and will be truncated'),
-                         Qgis.Warning)
+                         Qgis.MessageLevel.Warning)
         self.lne_table_name.setText(
             self.launder_table_name(p0,
                                     maxlen=(PG_MAX_IDENTIFIER_LEN - LONGEST_SUFFIX_LEN)))
@@ -361,7 +365,7 @@ class PGRasterImportDialog(QDialog, FORM_CLASS):
         if not conn:
             self.message(self.tr('PostGIS Raster Import'),
                          self.tr('Could not load raster layer: database connection not available'),
-                         Qgis.Warning)
+                         Qgis.MessageLevel.Warning)
             return
 
         db_connection_params = conn.get_dsn_parameters()
@@ -380,7 +384,7 @@ class PGRasterImportDialog(QDialog, FORM_CLASS):
             'dbname': '%s' % db_connection_params['dbname'],      # The PostgreSQL database to connect to.
             'host': '%s' % db_connection_params['host'],     # The host IP address or localhost.
             'port': '%s' % db_connection_params['port'],          # The port to connect on.
-            'sslmode': QgsDataSourceUri.SslDisable, # SslAllow, SslPrefer, SslRequire, SslVerifyCa, SslVerifyFull
+            'sslmode': QgsDataSourceUri.SslMode.SslDisable, # SslAllow, SslPrefer, SslRequire, SslVerifyCa, SslVerifyFull
             # user and password are not needed if stored in the authcfg or service
             'authcfg': uri_authcfg,  # The QGIS athentication database ID holding connection details.
             'service': None, # TODO: see above    # The PostgreSQL service to be used for connection to the database.

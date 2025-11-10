@@ -166,8 +166,8 @@ class RasterUpload(QObject):
             self.tr("Error"),
             "%s" % e,
             QMessageBox.StandardButtons(
-                QMessageBox.Ok),
-            QMessageBox.Ok)
+                QMessageBox.StandardButton.Ok),
+            QMessageBox.StandardButton.Ok)
         
         return False        
     
