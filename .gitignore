@@ -4,6 +4,9 @@ qgiscloud.zip
 createdist.sh
 exclude.lst
 .eric6project/
+.eric7project/
+.jedi/
+
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
