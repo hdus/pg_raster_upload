@@ -49,7 +49,7 @@ class PGRasterCreateOverviewsDialog(QDialog, FORM_CLASS):
         self.setupUi(self)
         self.iface = iface
         self.conn = None
-        
+
     def __error_message(self, e):
         QMessageBox.critical(
             None,
@@ -58,7 +58,7 @@ class PGRasterCreateOverviewsDialog(QDialog, FORM_CLASS):
             QMessageBox.StandardButtons(
                 QMessageBox.StandardButton.Ok),
             QMessageBox.StandardButton.Ok)
-        return None        
+        return None
 
     def open_dialog(self):
         self.conn = None
@@ -67,8 +67,8 @@ class PGRasterCreateOverviewsDialog(QDialog, FORM_CLASS):
         self.txt_table.clear()
         self.progress_bar.reset()
         self.progress_label.clear()
-        self.cmb_map_layer.setCurrentIndex(-1) 
-        self.cmb_map_layer.setFilters(QgsMapLayerProxyModel.Filter.RasterLayer)        
+        self.cmb_map_layer.setCurrentIndex(-1)
+        self.cmb_map_layer.setFilters(QgsMapLayerProxyModel.Filter.RasterLayer)
         self.set_excluded_layers()
         self.enable_buttons(False)
         self.show()
@@ -76,16 +76,16 @@ class PGRasterCreateOverviewsDialog(QDialog, FORM_CLASS):
     def message(self, title, text, type):
         widget = self.iface.messageBar().createMessage(title, text)
         self.iface.messageBar().pushWidget(widget, type, duration=5)
-        
+
     def set_excluded_layers(self):
         """Exclude all layers except PostGIS raster"""
         excepted_layers = []
         for i in range(self.cmb_map_layer.count()):
             layer = self.cmb_map_layer.layer(i)
             if layer.dataProvider().name() != 'postgresraster':
-                excepted_layers.append(layer)                
+                excepted_layers.append(layer)
         self.cmb_map_layer.setExceptedLayerList(excepted_layers)
-        
+
     def enable_buttons(self, status=None):
         if status is not None:
             self.btn_create.setEnabled(status)
@@ -94,17 +94,17 @@ class PGRasterCreateOverviewsDialog(QDialog, FORM_CLASS):
             self.btn_create.setEnabled(False)
         else:
             self.btn_create.setEnabled(True)
-            
-    def table_exists(self, conn, schema, table):            
+
+    def table_exists(self, conn, schema, table):
         sql = """
-            SELECT exists( 
-                SELECT table_name 
-                FROM information_schema.tables 
-                WHERE table_schema = '%s' and table_name = '%s')
-            """ % (schema,  table)
+            SELECT exists(
+                SELECT table_name
+                FROM information_schema.tables
+                WHERE table_schema = %s and table_name = %s)
+            """
         cur = conn.cursor()
-        cur.execute(sql)
-        rows = cur.fetchall()        
+        cur.execute(sql, (schema, table))
+        rows = cur.fetchall()
         return rows[0][0]
 
     def init_DB(self, connection_info):
@@ -115,22 +115,22 @@ class PGRasterCreateOverviewsDialog(QDialog, FORM_CLASS):
             QMessageBox.critical(None, self.tr('Error'),
                                  self.tr('Cannot connect to {0}: Exception info: {1}').format(
                                      connection_info, sys.exc_info()[1]))
-            return None        
+            return None
         return conn
-        
+
     def db_schemas(self, conn):
-        """Retrieve valid schemas for import from DB connection `conn`"""      
+        """Retrieve valid schemas for import from DB connection `conn`"""
         sql = """
              SELECT n.nspname AS "Name"
-               FROM pg_catalog.pg_namespace n                                      
-             WHERE n.nspname !~ '^pg_' AND n.nspname <> 'information_schema'     
-             ORDER BY 1;        
+               FROM pg_catalog.pg_namespace n
+             WHERE n.nspname !~ '^pg_' AND n.nspname <> 'information_schema'
+             ORDER BY 1;
         """
         cur = conn.cursor()
         cur.execute(sql)
-        rows = cur.fetchall()        
+        rows = cur.fetchall()
         schema_list = [row[0] for row in rows]
-        return schema_list           
+        return schema_list
 
     @pyqtSlot()
     def on_btn_close_clicked(self):
@@ -149,22 +149,22 @@ class PGRasterCreateOverviewsDialog(QDialog, FORM_CLASS):
         geom_column = selected_layer_uri.geometryColumn()
 
         if not (schema in self.db_schemas(self.conn) and self.table_exists(self.conn, schema, table)):
-            return #TODO error message        
+            return  # TODO error message
         with OverrideCursor(Qt.CursorShape.WaitCursor):
             uploader = RasterUpload(self.conn, self.progress_label, self.progress_bar)
-            result = uploader.create_overviews(schema, table, geom_column)  #TODO handle result
+            uploader.create_overviews(schema, table, geom_column)  # TODO handle result
 
         self.conn.close()
         self.enable_buttons(False)
-        self.selected_layer.reload()  #FIXME: Qgis doesn’t recognise the newly created overviews even after reload()
-    
+        self.selected_layer.reload()  # FIXME: Qgis doesn’t recognise the newly created overviews even after reload()
+
     @pyqtSlot()
     def on_btn_about_clicked(self):
         """
         Slot documentation goes here.
         """
         About().exec()
-    
+
     @pyqtSlot(str)
     def on_cmb_map_layer_currentIndexChanged(self):
         """Update data source info when new layer is selected and enable buttons correspondingly."""
@@ -186,25 +186,26 @@ class PGRasterCreateOverviewsDialog(QDialog, FORM_CLASS):
 
         self.conn = self.init_DB(conn_info)
         if not self.conn:
-            QMessageBox.warning(None, self.tr('Error'), 
+            QMessageBox.warning(None, self.tr('Error'),
                                 self.tr('Cannot connect to database {}').format(dbname))
             return
         if not self.raster_extension_exists(self.conn):  # shouldn’t happen
-            QMessageBox.warning(None, self.tr('Error'), self.tr('PostGIS Raster Extension not installed in destination DB'))
+            QMessageBox.warning(None, self.tr('Error'), self.tr(
+                'PostGIS Raster Extension not installed in destination DB'))
             return
         self.enable_buttons()
 
         self.txt_dbname.setText(dbname)
         self.txt_schema.setText(schema)
         self.txt_table.setText(table)
-        
+
     def raster_extension_exists(self, conn):
         sql = 'SELECT extname FROM pg_extension;'
         cursor = conn.cursor()
         cursor.execute(sql)
         conn.commit()
         result = cursor.fetchall()
-        
+
         for extension in result:
             if str(extension) == "('postgis_raster',)":
                 return True

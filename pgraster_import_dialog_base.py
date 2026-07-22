@@ -26,10 +26,16 @@ import sys
 import re
 import psycopg2
 from qgis.PyQt import uic
-from qgis.core import *
+from qgis.core import (
+    Qgis,
+    QgsCredentials,
+    QgsDataSourceUri,
+    QgsMapLayerProxyModel,
+    QgsProviderRegistry,
+)
 from qgis.utils import OverrideCursor
-from qgis.PyQt.QtCore import Qt,  pyqtSlot,  QSettings
-from qgis.PyQt.QtWidgets import QDialog,  QMessageBox
+from qgis.PyQt.QtCore import Qt, pyqtSlot, QSettings
+from qgis.PyQt.QtWidgets import QDialog, QMessageBox
 from .raster.raster_upload import RasterUpload
 from .about.about import About
 
@@ -44,7 +50,7 @@ FORM_CLASS, _ = uic.loadUiType(os.path.join(
 
 
 class PGRasterImportDialog(QDialog, FORM_CLASS):
-    def __init__(self, iface,  parent=None):
+    def __init__(self, iface, parent=None):
         """Constructor."""
         super(PGRasterImportDialog, self).__init__(parent)
         # Set up the user interface from Designer through FORM_CLASS.
@@ -56,54 +62,53 @@ class PGRasterImportDialog(QDialog, FORM_CLASS):
         self.iface = iface
         self.lne_table_name.setMaxLength(PG_MAX_IDENTIFIER_LEN - LONGEST_SUFFIX_LEN)
         self.getDbSettings()
-        self.cmb_map_layer.setCurrentIndex(-1) 
-        self.cmb_map_layer.setFilters(QgsMapLayerProxyModel.Filter.RasterLayer)        
+        self.cmb_map_layer.setCurrentIndex(-1)
+        self.cmb_map_layer.setFilters(QgsMapLayerProxyModel.Filter.RasterLayer)
         self.excluded_layers()
-        
+
     def __error_message(self, e):
-        result = QMessageBox.critical(
+        QMessageBox.critical(
             None,
             self.tr("Error"),
             "%s" % e,
             QMessageBox.StandardButtons(
                 QMessageBox.StandardButton.Ok),
             QMessageBox.StandardButton.Ok)
-        
-        return None        
-        
-    def message(self,  title,  text,  type):
+
+        return None
+
+    def message(self, title, text, type):
         widget = self.iface.messageBar().createMessage(title, text)
-        self.iface.messageBar().pushWidget(widget, type,  duration=5)
-        
+        self.iface.messageBar().pushWidget(widget, type, duration=5)
+
     def excluded_layers(self):
         excepted_layers = []
         for i in range(self.cmb_map_layer.count()):
             layer = self.cmb_map_layer.layer(i)
             if layer.dataProvider().name() == 'postgresraster':
                 excepted_layers.append(layer)
-                
+
         self.cmb_map_layer.setExceptedLayerList(excepted_layers)
-        
+
     def enable_buttons(self):
         if self.cmb_map_layer.currentIndex() == -1 or self.cmb_db_connections.currentIndex() == 0:
             self.btn_upload.setEnabled(False)
         else:
             self.btn_upload.setEnabled(True)
-            
-    def table_exists(self,  conn,  schema,  table):
-            
+
+    def table_exists(self, conn, schema, table):
+
         sql = """
-            SELECT exists( 
-                SELECT table_name 
-                FROM information_schema.tables 
-                WHERE table_schema = '%s' and table_name = '%s')
-            """ % (schema,  table)
+            SELECT exists(
+                SELECT table_name
+                FROM information_schema.tables
+                WHERE table_schema = %s and table_name = %s)
+            """
         cur = conn.cursor()
-        cur.execute(sql)
-        rows = cur.fetchall()        
+        cur.execute(sql, (schema, table))
+        rows = cur.fetchall()
 
         return rows[0][0]
-            
 
     def getDbSettings(self):
         self.cmb_db_connections.clear()
@@ -113,12 +118,20 @@ class PGRasterImportDialog(QDialog, FORM_CLASS):
         self.cmb_db_connections.addItems(settings.childGroups())
         settings.endGroup()
         self.cmb_db_connections.setCurrentIndex(0)
-        
+
+    @staticmethod
+    def _is_unset(value):
+        """Return True if a QSettings value is empty or the string placeholder QGIS uses for 'not set'."""
+        return value in ('', 'NULL', 'None')
+
     def init_DB(self, selectedServer):
-        """Connect to DB, asking for credentials if neccessary. Return connection and password, or (None, None) if no connection possible."""
+        """Connect to DB, asking for credentials if neccessary.
+
+        Return connection and password, or (None, None) if no connection possible.
+        """
         if self.cmb_db_connections.currentIndex() == 0:
             return None, None
-            
+
         settings = QSettings()
         mySettings = '/PostgreSQL/connections/' + selectedServer
         DBNAME = settings.value(mySettings + '/database')
@@ -127,17 +140,19 @@ class PGRasterImportDialog(QDialog, FORM_CLASS):
         DBPORT = settings.value(mySettings + '/port')
         DBPASSWD = str(settings.value(mySettings + '/password', ''))
         SERVICE_NAME = str(settings.value(mySettings + '/service', ''))
-        
-        if SERVICE_NAME and SERVICE_NAME not in ('', 'NULL', 'None'):
+
+        if SERVICE_NAME and not self._is_unset(SERVICE_NAME):
             connection_info = "service='{0}'".format(SERVICE_NAME)
         else:
-            if DBPORT == None or DBPORT == 'NULL' or DBPORT == '':
+            if DBPORT is None or self._is_unset(DBPORT):
                 DBPORT = '5432'
-                
-            if DBUSER == 'NULL' or DBPASSWD == 'NULL' or DBUSER == '' or DBPASSWD == '':
-                connection_info = "dbname='{0}' host='{1}' port={2}".format(DBNAME,  DBHOST,  DBPORT)                
-                if DBUSER == 'NULL' or DBUSER == '':
-                    try:  # try connecting without asking for credentials (e.g. Postgres is set up with Windows authentication)
+
+            if self._is_unset(DBUSER) or self._is_unset(DBPASSWD):
+                connection_info = "dbname='{0}' host='{1}' port={2}".format(DBNAME, DBHOST, DBPORT)
+                if self._is_unset(DBUSER):
+                    # try connecting without asking for credentials (e.g. Postgres is set up
+                    # with Windows authentication)
+                    try:
                         conn = psycopg2.connect(connection_info)
                         if conn:
                             (success, user, password) = (True, '', '')
@@ -148,16 +163,17 @@ class PGRasterImportDialog(QDialog, FORM_CLASS):
                         (success, user, password) = QgsCredentials.instance().get(connection_info, None, None)
                 else:
                     (success, user, password) = QgsCredentials.instance().get(connection_info, str(DBUSER), None)
-                    
+
                 if not success:
-                    QMessageBox.critical(None,  self.tr('Error'),  self.tr('Username or password incorrect!'))
+                    QMessageBox.critical(None, self.tr('Error'), self.tr('Username or password incorrect!'))
                     return None, None
 
                 DBUSER = user
                 DBPASSWD = password
-    
-            connection_info = "dbname='{0}' host='{1}' port={2} user='{3}' password='{4}'".format(DBNAME, DBHOST, DBPORT, DBUSER, DBPASSWD)
-        
+
+            connection_info = "dbname='{0}' host='{1}' port={2} user='{3}' password='{4}'".format(
+                DBNAME, DBHOST, DBPORT, DBUSER, DBPASSWD)
+
         try:
             conn = psycopg2.connect(connection_info)
         except psycopg2.Error:
@@ -165,22 +181,22 @@ class PGRasterImportDialog(QDialog, FORM_CLASS):
                                  self.tr('Cannot connect to {0}: Exception info: {1}').format(
                                      connection_info, sys.exc_info()[1]))
             return None, None
-        
+
         return conn, DBPASSWD
-        
-    def db_schemas(self,  conn):
-        """Retrieve valid schemas for import from DB connection `conn`"""      
+
+    def db_schemas(self, conn):
+        """Retrieve valid schemas for import from DB connection `conn`"""
         sql = """
              SELECT n.nspname AS "Name"
-               FROM pg_catalog.pg_namespace n                                      
-             WHERE n.nspname !~ '^pg_' AND n.nspname <> 'information_schema'     
-             ORDER BY 1;        
+               FROM pg_catalog.pg_namespace n
+             WHERE n.nspname !~ '^pg_' AND n.nspname <> 'information_schema'
+             ORDER BY 1;
         """
         cur = conn.cursor()
         cur.execute(sql)
-        rows = cur.fetchall()        
+        rows = cur.fetchall()
         schema_list = [row[0] for row in rows]
-        return schema_list           
+        return schema_list
 
     @pyqtSlot()
     def on_btn_close_clicked(self):
@@ -188,13 +204,12 @@ class PGRasterImportDialog(QDialog, FORM_CLASS):
         Slot documentation goes here.
         """
         self.close()
-    
-    
+
     @pyqtSlot(str)
     def on_cmb_db_connections_currentIndexChanged(self, p0):
         """
         Update schema list when new DB is selected and enable buttons correspondingly.
-        
+
         @param p0 selected item
         @type str
         """
@@ -206,19 +221,19 @@ class PGRasterImportDialog(QDialog, FORM_CLASS):
             self.cmb_schema.addItems(self.db_schemas(conn))
             self.enable_buttons()
         else:
-            QMessageBox.warning(None, self.tr('Error'),  self.tr('PostGIS Raster Extension not installed in destination DB'))
-            
-    
+            QMessageBox.warning(None, self.tr('Error'), self.tr(
+                'PostGIS Raster Extension not installed in destination DB'))
+
     @pyqtSlot()
     def on_btn_upload_clicked(self):
         """
         Slot documentation goes here.
         """
-        conn,  password = self.init_DB(self.cmb_db_connections.currentText())
+        conn, password = self.init_DB(self.cmb_db_connections.currentText())
         if not conn:  # invalid DB connection or no connection possible (wrong password etc.)
             return
-   
-        if self.table_exists(conn,  self.cmb_schema.currentText(),  self.lne_table_name.text()):
+
+        if self.table_exists(conn, self.cmb_schema.currentText(), self.lne_table_name.text()):
             result = QMessageBox.question(
                 None,
                 self.tr("Table exists"),
@@ -227,38 +242,42 @@ class PGRasterImportDialog(QDialog, FORM_CLASS):
                     QMessageBox.StandardButton.No |
                     QMessageBox.StandardButton.Yes),
                 QMessageBox.StandardButton.No)
-            
+
             if result == QMessageBox.StandardButton.Yes:
                 if self.raster_upload(conn):
-                    self.message(self.tr('Success'),  self.tr('Raster successful uploaded to database'),  Qgis.MessageLevel.Success)
+                    self.message(
+                        self.tr('Success'),
+                        self.tr('Raster successful uploaded to database'),
+                        Qgis.MessageLevel.Success)
                 else:
-                    self.message(self.tr('Error'),  self.tr('Upload failed'),  Qgis.MessageLevel.Critical)
+                    self.message(self.tr('Error'), self.tr('Upload failed'), Qgis.MessageLevel.Critical)
                     return  # Do not add layer if upload failed
             else:
-                self.message(self.tr('PostGIS Raster Import'), self.tr('Upload cancelled'),  Qgis.MessageLevel.Warning)
+                self.message(self.tr('PostGIS Raster Import'), self.tr('Upload cancelled'), Qgis.MessageLevel.Warning)
                 return  # Do not add layer if upload was cancelled by user
         else:
             if self.raster_upload(conn):
-                self.message(self.tr('Success'),  self.tr('Raster successful uploaded to database'),  Qgis.MessageLevel.Success)
+                self.message(
+                    self.tr('Success'),
+                    self.tr('Raster successful uploaded to database'),
+                    Qgis.MessageLevel.Success)
             else:
-                self.message(self.tr('Error'),  self.tr('Upload failed'),  Qgis.MessageLevel.Critical)
+                self.message(self.tr('Error'), self.tr('Upload failed'), Qgis.MessageLevel.Critical)
                 return  # Do not add layer if upload failed
         self.progress_bar.setValue(0)
-        
+
         if self.chk_add_raster.isChecked():
             self.load_raster_layer()
-        
-    
-    def raster_upload(self,  conn):
-#     If schema doesn't exists in DB create a new schema        
+
+    def raster_upload(self, conn):
+        #     If schema doesn't exists in DB create a new schema
         if self.cmb_schema.currentText() not in self.db_schemas(conn):
             sql = """
             create schema {0}
             """.format(self.cmb_schema.currentText())
             cursor = conn.cursor()
             cursor.execute(sql)
-        
-        
+
         layer = self.cmb_map_layer.currentLayer()
         if not layer.crs().isValid():
             QMessageBox.warning(self, self.tr('Warning'),
@@ -266,14 +285,14 @@ class PGRasterImportDialog(QDialog, FORM_CLASS):
             return False
         if layer.dataProvider().name() == 'gdal':
             raster_to_upload = {
-                        'layer': layer,
-                        'data_source': layer.source(),
-                        'db_name': self.cmb_db_connections.currentText(),
-                        'schema_name': self.cmb_schema.currentText(), 
-                        'table_name': self.lne_table_name.text(),
-                        'geom_column': 'rast'
-                    }
-            
+                'layer': layer,
+                'data_source': layer.source(),
+                'db_name': self.cmb_db_connections.currentText(),
+                'schema_name': self.cmb_schema.currentText(),
+                'table_name': self.lne_table_name.text(),
+                'geom_column': 'rast'
+            }
+
             with OverrideCursor(Qt.CursorShape.WaitCursor):
                 uploader = RasterUpload(conn, self.progress_label, self.progress_bar)
                 success = uploader.import_raster(raster_to_upload, self.chk_overviews.isChecked())
@@ -287,23 +306,23 @@ class PGRasterImportDialog(QDialog, FORM_CLASS):
                 QMessageBox.StandardButtons(
                     QMessageBox.StandardButton.Ok))
             return False
-    
+
     @pyqtSlot()
     def on_btn_load_raster_clicked(self):
         pass
-        
+
     @pyqtSlot()
     def on_btn_about_clicked(self):
         """
         Slot documentation goes here.
         """
         About().exec()
-    
+
     @pyqtSlot(str)
     def on_cmb_map_layer_currentIndexChanged(self, p0):
         """
         Slot documentation goes here.
-        
+
         @param p0 DESCRIPTION
         @type str
         """
@@ -315,20 +334,20 @@ class PGRasterImportDialog(QDialog, FORM_CLASS):
             self.launder_table_name(p0,
                                     maxlen=(PG_MAX_IDENTIFIER_LEN - LONGEST_SUFFIX_LEN)))
         self.enable_buttons()
-        
-    def raster_extension_exists(self,  conn):
+
+    def raster_extension_exists(self, conn):
         sql = 'SELECT extname FROM pg_extension;'
         cursor = conn.cursor()
         cursor.execute(sql)
         conn.commit()
         result = cursor.fetchall()
-        
+
         for extension in result:
             if str(extension) == "('postgis_raster',)":
                 return True
-                
+
         return False
-            
+
 #    @staticmethod
     def launder_table_name(self, name: str, maxlen: int = None):
         """Change table name to lower case, replace special characters, and truncate to maximum length """
@@ -350,16 +369,16 @@ class PGRasterImportDialog(QDialog, FORM_CLASS):
 
         try:
             decoded = input_string.decode('utf-8')
-        except:
+        except BaseException:
             decoded = input_string
         if maxlen:
             return decoded[:maxlen]
         return decoded
-            
+
     def load_raster_layer(self):
-                
-#['user=hdus', 'password=xxx', 'dbname=raster', 'host=localhost', 'port=5432']
-#{'dbname': 'test', 'user': 'postgres', 'port': '5432', 'sslmode': 'prefer'}
+
+        # ['user=hdus', 'password=xxx', 'dbname=raster', 'host=localhost', 'port=5432']
+        # {'dbname': 'test', 'user': 'postgres', 'port': '5432', 'sslmode': 'prefer'}
 
         conn, passwd = self.init_DB(self.cmb_db_connections.currentText())
         if not conn:
@@ -384,33 +403,35 @@ class PGRasterImportDialog(QDialog, FORM_CLASS):
             'dbname': '%s' % db_connection_params['dbname'],      # The PostgreSQL database to connect to.
             'host': '%s' % db_connection_params['host'],     # The host IP address or localhost.
             'port': '%s' % db_connection_params['port'],          # The port to connect on.
-            'sslmode': QgsDataSourceUri.SslMode.SslDisable, # SslAllow, SslPrefer, SslRequire, SslVerifyCa, SslVerifyFull
+            # SslAllow, SslPrefer, SslRequire, SslVerifyCa, SslVerifyFull
+            'sslmode': QgsDataSourceUri.SslMode.SslDisable,
             # user and password are not needed if stored in the authcfg or service
             'authcfg': uri_authcfg,  # The QGIS athentication database ID holding connection details.
-            'service': None, # TODO: see above    # The PostgreSQL service to be used for connection to the database.
+            'service': None,  # TODO: see above    # The PostgreSQL service to be used for connection to the database.
             'username': uri_username,  # The PostgreSQL user name.
             'password': uri_passwd,    # The PostgreSQL password for the user.
             # table and raster column details
-            'schema':'%s' % self.cmb_schema.currentText(),      # The database schema that the table is located in.
-            'table':'%s' % self.lne_table_name.text(),   # The database table to be loaded.
-            'geometrycolumn':'rast',# raster column in PostGIS table
-            'sql':None,             # An SQL WHERE clause. It should be placed at the end of the string.
-            'key':None,             # A key column from the table.
-            'srid':None,            # A string designating the SRID of the coordinate reference system.
-            'estimatedmetadata':'False', # A boolean value telling if the metadata is estimated.
-            'type':None,            # A WKT string designating the WKB Type.
-            'selectatid':None,      # Set to True to disable selection by feature ID.
-            'options':None,         # other PostgreSQL connection options not in this list.
+            'schema': '%s' % self.cmb_schema.currentText(),      # The database schema that the table is located in.
+            'table': '%s' % self.lne_table_name.text(),   # The database table to be loaded.
+            'geometrycolumn': 'rast',  # raster column in PostGIS table
+            'sql': None,             # An SQL WHERE clause. It should be placed at the end of the string.
+            'key': None,             # A key column from the table.
+            'srid': None,            # A string designating the SRID of the coordinate reference system.
+            'estimatedmetadata': 'False',  # A boolean value telling if the metadata is estimated.
+            'type': None,            # A WKT string designating the WKB Type.
+            'selectatid': None,      # Set to True to disable selection by feature ID.
+            'options': None,         # other PostgreSQL connection options not in this list.
             'enableTime': None,
             'temporalDefaultTime': None,
             'temporalFieldIndex': None,
-            'mode':'2',             # GDAL 'mode' parameter, 2 unions raster tiles, 1 adds tiles separately (may require user input)
+            # GDAL 'mode' parameter, 2 unions raster tiles, 1 adds tiles separately (may require user input)
+            'mode': '2',
         }
         # remove any NULL parameters
-        uri_config = {key:val for key, val in uri_config.items() if val is not None}
+        uri_config = {key: val for key, val in uri_config.items() if val is not None}
         # get the metadata for the raster provider and configure the URI
         md = QgsProviderRegistry.instance().providerMetadata('postgresraster')
         uri = QgsDataSourceUri(md.encodeUri(uri_config))
 
         # the raster can then be loaded into the project
-        rlayer = self.iface.addRasterLayer(uri.uri(False), self.lne_table_name.text(), "postgresraster")        
+        self.iface.addRasterLayer(uri.uri(False), self.lne_table_name.text(), "postgresraster")

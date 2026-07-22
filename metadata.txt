@@ -5,11 +5,12 @@
 [general]
 name=PostGIS Raster Import
 qgisMinimumVersion=3.99
+qgisMaximumVersion=4.99
 description=Import Raster to PgRaster
 supportsQt6=True
-version=4.0.0
+version=4.0.1
 author=Dr. Horst Duester
-email=horst.duester@sourcepole.ch
+email=horst.duester@kappasys.ch
 
 about=The plugin is designed to easily import file-based rasters into a PostGIS database. 
 
@@ -34,48 +35,10 @@ hasProcessingProvider=no
 
 # Uncomment the following line and add your changelog:
 changelog=
+  4.0.1
+  - fix security and Flake8 findings in pg_raster_import
   4.0.0
   - Initial release of QGIS 4/ Qt 6 compatibility
-  3.2.1
-  - Use layer CRS instead of file’s CRS (i.e. user can assign correct CRS in QGIS)
-  - Do not import rasters without valid CRS
-  - Fix “definition of service "None" not found” error when selecting DB
-  - Create overviews for existing PostGIS rasters
-  - Slight cleanup of translations and UI
-  3.2.0
-  - Do not ask for credentials if not necessary
-  3.1.0
-  - Fix for psycopg2 > 20900
-  3.0.0
-  - set to revision 3.0.0 due to QGIS 3
-  - Fixed pull request for fix #4
-  - better error handling with respect to no raster extension installed.
-  1.0.11
-  - clear schema combobox when new database selected
-  1.0.10
-  - overview creation fixed
-  1.0.9
-  - DB credential handling improved
-  1.0.8
-  - enable buttons bug fixed
-  1.0.7
-  - Fix database login
-  - launder_table_name improved
-  1.0.6
-  - Laundering of resulting database table improved
-  - Checkbox "Add Raster to Mapcanvas" added
-  1.0.5
-  - Tablename always to lowercase
-  1.0.4
-  - Improved error handling
-  1.0.3
-  - Fix #1
-  1.0.2
-  - Bugfixing
-  1.0.1
-  - Bugfixing
-  1.0.0
-  - Initial release
 
 # Tags are comma separated with spaces allowed
 tags=python

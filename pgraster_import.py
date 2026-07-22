@@ -33,8 +33,8 @@ from qgis.PyQt.QtCore import (
 from qgis.PyQt.QtGui import QIcon
 from qgis.PyQt.QtWidgets import QAction, QMenu
 
-# Initialize Qt resources from file resources.py
-from .resources_rc import *
+# Initialize Qt resources from file resources.py (registers icons as a side effect)
+from .resources_rc import *  # noqa: F401,F403
 # Import the code for the dialog
 from .pgraster_import_dialog_base import PGRasterImportDialog
 from .pgraster_create_overviews_dialog import PGRasterCreateOverviewsDialog
@@ -90,18 +90,17 @@ class PGRasterImport:
         # noinspection PyTypeChecker,PyArgumentList,PyCallByClass
         return QCoreApplication.translate('PGRasterImport', message)
 
-
     def add_action(
-        self,
-        icon_path,
-        text,
-        callback,
-        enabled_flag=True,
-        add_to_menu=True,
-        add_to_toolbar=True,
-        status_tip=None,
-        whats_this=None,
-        parent=None):
+            self,
+            icon_path,
+            text,
+            callback,
+            enabled_flag=True,
+            add_to_menu=True,
+            add_to_toolbar=True,
+            status_tip=None,
+            whats_this=None,
+            parent=None):
         """Add a toolbar icon to the toolbar.
 
         :param icon_path: Path to the icon for this action. Can be a resource
@@ -166,7 +165,7 @@ class PGRasterImport:
     def initGui(self):
         """Create the menu entries and toolbar icons inside the QGIS GUI."""
 
-        resource_prefix = ':/plugins/pgraster_import/icons'        
+        resource_prefix = ':/plugins/pgraster_import/icons'
         self.menu = QMenu(self.tr('&PostGIS Raster Import'))
         self.menu.setIcon(QIcon(resource_prefix + '/icon.png'))
         self.add_action(
@@ -198,7 +197,7 @@ class PGRasterImport:
 
         # Create the dialog with elements (after translation) and keep reference
         # Only create GUI ONCE in callback, so that it will only load when the plugin is started
-        if self.first_start == True:
+        if self.first_start:
             self.first_start = False
             self.dlg = PGRasterImportDialog(self.iface)
 
